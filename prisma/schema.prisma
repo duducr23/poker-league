@@ -17,13 +17,15 @@ model User {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  groupMemberships  GroupMember[]
-  createdGroups     Group[]                    @relation("GroupOwner")
-  createdSessions   Session[]                  @relation("SessionCreator")
-  sessionResults    SessionParticipantResult[]
-  achievements      Achievement[]
-  settlementsFrom   Settlement[]               @relation("SettlementFrom")
-  settlementsTo     Settlement[]               @relation("SettlementTo")
+  groupMemberships      GroupMember[]
+  createdGroups         Group[]                    @relation("GroupOwner")
+  createdSessions       Session[]                  @relation("SessionCreator")
+  sessionResults        SessionParticipantResult[]
+  achievements          Achievement[]
+  settlementsFrom       Settlement[]               @relation("SettlementFrom")
+  settlementsTo         Settlement[]               @relation("SettlementTo")
+  createdInvitations    EventInvitation[]          @relation("InvitationCreator")
+  invitationResponses   InvitationResponse[]
 }
 
 model Group {
@@ -35,11 +37,12 @@ model Group {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  owner        User          @relation("GroupOwner", fields: [ownerId], references: [id])
+  owner        User              @relation("GroupOwner", fields: [ownerId], references: [id])
   members      GroupMember[]
   sessions     Session[]
   seasons      Season[]
   achievements Achievement[]
+  invitations  EventInvitation[]
 }
 
 model GroupMember {
@@ -138,6 +141,42 @@ model Achievement {
   session Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
 
   @@index([userId, groupId])
+}
+
+model EventInvitation {
+  id          String   @id @default(cuid())
+  groupId     String
+  title       String
+  date        DateTime
+  location    String?
+  notes       String?
+  createdById String
+  createdAt   DateTime @default(now())
+
+  group     Group                @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdBy User                 @relation("InvitationCreator", fields: [createdById], references: [id])
+  responses InvitationResponse[]
+
+  @@index([groupId])
+}
+
+model InvitationResponse {
+  id           String     @id @default(cuid())
+  invitationId String
+  userId       String
+  status       RSVPStatus
+  respondedAt  DateTime   @default(now())
+
+  invitation EventInvitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([invitationId, userId])
+}
+
+enum RSVPStatus {
+  COMING
+  NOT_COMING
+  MAYBE
 }
 
 model Settlement {

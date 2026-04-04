@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/layout/empty-state";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { Users, Plus, Spade, CalendarDays, Trophy, ArrowLeft, TrendingUp, TrendingDown, Flame, Zap } from "lucide-react";
+import { Users, Plus, Spade, CalendarDays, Trophy, ArrowLeft, TrendingUp, TrendingDown, Flame, Zap, Mail } from "lucide-react";
 import { formatDate, formatCurrency, getStatusLabel, getStatusColor } from "@/lib/utils";
 import { getGroupInsights } from "@/lib/insights";
 
@@ -39,6 +39,18 @@ export default async function DashboardPage() {
 
   const groups = memberships.map((m) => ({ id: m.group.id, name: m.group.name }));
 
+  // Pending invitations — upcoming, not yet answered by this user
+  const groupIds = memberships.map(m => m.group.id);
+  const pendingInvitations = groupIds.length > 0 ? await prisma.eventInvitation.findMany({
+    where: {
+      groupId: { in: groupIds },
+      date: { gte: new Date() },
+      responses: { none: { userId: session.user.id } },
+    },
+    include: { group: { select: { id: true, name: true } } },
+    orderBy: { date: "asc" },
+    take: 5,
+  }) : [];
 
   // Load insights for the first group (most relevant)
   const firstGroupId = memberships[0]?.group.id;
@@ -63,6 +75,36 @@ export default async function DashboardPage() {
               <Button variant="outline" className="gap-2"><Users className="h-4 w-4" />הצטרף עם קוד</Button>
             </Link>
           </div>
+
+          {/* Pending invitations */}
+          {pendingInvitations.length > 0 && (
+            <div
+              className="rounded-xl p-4 space-y-3"
+              style={{ background: "rgba(212,160,23,0.06)", border: "1px solid rgba(212,160,23,0.2)" }}
+            >
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-yellow-500" />
+                <span className="text-sm font-semibold text-yellow-400">הזמנות שממתינות לתגובה שלך</span>
+                <Badge variant="destructive" className="text-xs">{pendingInvitations.length}</Badge>
+              </div>
+              {pendingInvitations.map(inv => (
+                <Link key={inv.id} href={`/groups/${inv.group.id}/invitations`}>
+                  <div
+                    className="flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all hover:bg-white/5"
+                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(212,160,23,0.1)" }}
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-slate-200">{inv.title}</p>
+                      <p className="text-xs text-slate-500">
+                        {inv.group.name} · {new Date(inv.date).toLocaleDateString("he-IL", { weekday: "short", day: "numeric", month: "short" })}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="text-yellow-500 border-yellow-700/40 text-xs">לא ענית</Badge>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
 
           {/* Insights section */}
           {insights && (insights.hottest || insights.coldest || insights.mostImproved || insights.biggestComeback) && (

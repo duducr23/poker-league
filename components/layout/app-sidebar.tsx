@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { LayoutDashboard, Users, LogOut, Trophy, CalendarDays, Settings, ChevronLeft } from "lucide-react";
+import { LayoutDashboard, Users, LogOut, Trophy, CalendarDays, Settings, ChevronLeft, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -32,6 +32,7 @@ export function AppSidebar({ groups = [], activeGroupId, canCreateGroup = false,
     ? [
         { href: `/groups/${activeGroupId}`, label: "סקירה", icon: LayoutDashboard, suit: "♠" },
         { href: `/groups/${activeGroupId}/sessions`, label: "ערבי משחק", icon: CalendarDays, suit: "♥" },
+        { href: `/groups/${activeGroupId}/invitations`, label: "הזמנות", icon: Mail, suit: "♦" },
         { href: `/groups/${activeGroupId}/leaderboard`, label: "טבלת דירוג", icon: Trophy, suit: "♦" },
         { href: `/groups/${activeGroupId}/settings`, label: "הגדרות", icon: Settings, suit: "♣" },
       ]
