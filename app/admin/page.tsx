@@ -4,7 +4,8 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { TogglePermission } from "@/components/admin/toggle-permission";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Users } from "lucide-react";
+import { Shield, Users, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 
 export default async function AdminPage() {
@@ -34,6 +35,11 @@ export default async function AdminPage() {
       style={{ background: "linear-gradient(180deg, #0a0a12 0%, #080810 100%)" }}
     >
       <div className="max-w-3xl mx-auto space-y-6">
+        {/* Back link */}
+        <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-200">
+          <ArrowRight className="h-4 w-4" />חזרה לדשבורד
+        </Link>
+
         {/* Header */}
         <div className="flex items-center gap-3">
           <div
@@ -102,7 +108,7 @@ export default async function AdminPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-slate-100 truncate">{user.name}</p>
-                    {user.email === process.env.SUPER_ADMIN_EMAIL && (
+                    {user.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase() && (
                       <Badge variant="default" className="text-xs">סופר-אדמין</Badge>
                     )}
                   </div>
@@ -111,7 +117,7 @@ export default async function AdminPage() {
                     {user._count.groupMemberships} קבוצות · הצטרף {formatDate(user.createdAt)}
                   </p>
                 </div>
-                {user.email !== process.env.SUPER_ADMIN_EMAIL ? (
+                {user.email?.toLowerCase() !== process.env.SUPER_ADMIN_EMAIL?.toLowerCase() ? (
                   <TogglePermission userId={user.id} canCreateGroup={user.canCreateGroup} />
                 ) : (
                   <Badge variant="outline" className="text-yellow-600 border-yellow-700/40">גישה מלאה</Badge>
