@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 
 const schema = z.object({
   name: z.string().min(2, "שם חייב להכיל לפחות 2 תווים"),
@@ -23,6 +23,7 @@ type FormData = z.infer<typeof schema>;
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   async function onSubmit(data: FormData) {
@@ -66,7 +67,12 @@ export default function RegisterPage() {
         </div>
         <div className="space-y-2">
           <Label className="text-slate-400 text-xs uppercase tracking-wider">סיסמה</Label>
-          <Input type="password" placeholder="לפחות 6 תווים" {...register("password")} />
+          <div className="relative">
+            <Input type={showPassword ? "text" : "password"} placeholder="לפחות 6 תווים" {...register("password")} className="pl-10" />
+            <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
           {errors.password && <p className="text-xs text-red-400">{errors.password.message}</p>}
         </div>
         <Button type="submit" className="w-full mt-2" size="lg" disabled={loading}>

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, Mail, Lock } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 const schema = z.object({
   email: z.string().email("אימייל לא תקין"),
@@ -21,6 +21,7 @@ type FormData = z.infer<typeof schema>;
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   async function onSubmit(data: FormData) {
@@ -67,7 +68,12 @@ export default function LoginPage() {
             <Lock className="h-3.5 w-3.5" style={{ color: "#d4a017" }} />
             סיסמה
           </Label>
-          <Input id="password" type="password" placeholder="••••••" {...register("password")} />
+          <div className="relative">
+            <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••" {...register("password")} className="pl-10" />
+            <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
           {errors.password && <p className="text-xs text-red-400">{errors.password.message}</p>}
         </div>
 
