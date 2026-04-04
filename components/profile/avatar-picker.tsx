@@ -7,16 +7,18 @@ import { Check, Loader2 } from "lucide-react";
 import Image from "next/image";
 
 const STYLES = [
-  { key: "fun-emoji",         label: "אמוג'י 😄" },
-  { key: "bottts-neutral",    label: "רובוטים 🤖" },
-  { key: "thumbs",            label: "דמויות 👍" },
-  { key: "pixel-art",         label: "פיקסל 🎮" },
+  { key: "adventurer",     label: "הרפתקנים 🧝", bg: "b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf" },
+  { key: "fun-emoji",      label: "אמוג'י 😄",   bg: "ffd5dc,ffdfbf,c0aede,b6e3f4,d1d4f9" },
+  { key: "lorelei",        label: "דמויות 🧑",   bg: "b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf" },
+  { key: "micah",          label: "פנים 🎨",     bg: "b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf,a3e4d7" },
+  { key: "bottts",         label: "רובוטים 🤖",  bg: "b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf" },
+  { key: "pixel-art",      label: "פיקסל 🎮",   bg: "b6e3f4,c0aede,d1d4f9,ffd5dc,a3e4d7,ffdfbf" },
 ];
 
 const SEEDS = ["Ace", "King", "Queen", "Jack", "Poker", "Chips", "Bluff", "AllIn", "Flush", "Raise", "River", "Flop"];
 
-function avatarUrl(style: string, seed: string) {
-  return `https://api.dicebear.com/9.x/${style}/svg?seed=${seed}&backgroundColor=transparent`;
+function avatarUrl(style: string, seed: string, bg: string) {
+  return `https://api.dicebear.com/9.x/${style}/svg?seed=${seed}&backgroundColor=${bg}&backgroundType=solid&radius=50`;
 }
 
 interface Props {
@@ -26,12 +28,12 @@ interface Props {
 export function AvatarPicker({ currentImage }: Props) {
   const router = useRouter();
   const [selected, setSelected] = useState<string>(currentImage || "");
-  const [activeStyle, setActiveStyle] = useState(STYLES[0].key);
+  const [activeStyle, setActiveStyle] = useState(STYLES[0]);
   const [saving, setSaving] = useState(false);
 
   const avatars = SEEDS.map((seed) => ({
     seed,
-    url: avatarUrl(activeStyle, seed),
+    url: avatarUrl(activeStyle.key, seed, activeStyle.bg),
   }));
 
   async function save() {
@@ -75,12 +77,12 @@ export function AvatarPicker({ currentImage }: Props) {
         {STYLES.map((s) => (
           <button
             key={s.key}
-            onClick={() => setActiveStyle(s.key)}
+            onClick={() => setActiveStyle(s)}
             className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
             style={{
-              background: activeStyle === s.key ? "linear-gradient(135deg, #d4a017, #f5c842)" : "rgba(212,160,23,0.06)",
-              color: activeStyle === s.key ? "#0a0a12" : "#94a3b8",
-              border: `1px solid ${activeStyle === s.key ? "transparent" : "rgba(212,160,23,0.15)"}`,
+              background: activeStyle.key === s.key ? "linear-gradient(135deg, #d4a017, #f5c842)" : "rgba(212,160,23,0.06)",
+              color: activeStyle.key === s.key ? "#0a0a12" : "#94a3b8",
+              border: `1px solid ${activeStyle.key === s.key ? "transparent" : "rgba(212,160,23,0.15)"}`,
             }}
           >
             {s.label}
@@ -107,7 +109,7 @@ export function AvatarPicker({ currentImage }: Props) {
               <img
                 src={url}
                 alt={seed}
-                className="h-full w-full p-1.5"
+                className="h-full w-full"
               />
               {isSelected && (
                 <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(212,160,23,0.15)" }}>
