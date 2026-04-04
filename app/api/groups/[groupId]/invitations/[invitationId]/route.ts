@@ -25,6 +25,25 @@ export async function DELETE(
   const isAdmin = member?.role === "ADMIN";
   if (!isCreator && !isAdmin) return NextResponse.json({ error: "אין הרשאה" }, { status: 403 });
 
+  const linkedSessionId = invitation.sessionId;
+
   await prisma.eventInvitation.delete({ where: { id: params.invitationId } });
+
+  // If the invitation had a linked session that is still OPEN and empty — delete it too
+  if (linkedSessionId) {
+    const linkedSession = await prisma.session.findUnique({
+      where: { id: linkedSessionId },
+      include: { results: true, financialRequests: true },
+    });
+    if (
+      linkedSession &&
+      linkedSession.status === "OPEN" &&
+      linkedSession.financialRequests.length === 0 &&
+      linkedSession.results.every(r => r.buyIn === 0 && r.totalInvested === 0 && !r.isSubmitted)
+    ) {
+      await prisma.session.delete({ where: { id: linkedSessionId } });
+    }
+  }
+
   return NextResponse.json({ ok: true });
 }

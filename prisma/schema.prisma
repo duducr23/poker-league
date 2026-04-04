@@ -102,6 +102,7 @@ model Session {
   settlements         Settlement[]
   achievements        Achievement[]
   financialRequests   SessionFinancialRequest[]
+  invitation          EventInvitation?           @relation("InvitationSession")
 }
 
 enum SessionStatus {
@@ -159,10 +160,12 @@ model EventInvitation {
   notes       String?
   createdById String
   createdAt   DateTime @default(now())
+  sessionId   String?
 
   group     Group                @relation(fields: [groupId], references: [id], onDelete: Cascade)
   createdBy User                 @relation("InvitationCreator", fields: [createdById], references: [id])
   responses InvitationResponse[]
+  session   Session?             @relation("InvitationSession", fields: [sessionId], references: [id], onDelete: SetNull)
 
   @@index([groupId])
 }

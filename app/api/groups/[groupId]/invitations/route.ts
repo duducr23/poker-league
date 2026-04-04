@@ -46,19 +46,37 @@ export async function POST(req: Request, { params }: { params: { groupId: string
   const body = schema.safeParse(await req.json());
   if (!body.success) return NextResponse.json({ error: "נתונים לא תקינים" }, { status: 400 });
 
-  const invitation = await prisma.eventInvitation.create({
-    data: {
-      groupId: params.groupId,
-      title: body.data.title,
-      date: new Date(body.data.date),
-      location: body.data.location,
-      notes: body.data.notes,
-      createdById: session.user.id,
-    },
-    include: {
-      createdBy: { select: { id: true, name: true } },
-      responses: true,
-    },
+  // Create session + invitation atomically
+  const invitation = await prisma.$transaction(async (tx) => {
+    // Auto-create a linked session for this invitation
+    const linkedSession = await tx.session.create({
+      data: {
+        groupId: params.groupId,
+        date: new Date(body.data.date),
+        location: body.data.location,
+        notes: body.data.notes ? `הזמנה: ${body.data.notes}` : `ערב פוקר — ${body.data.title}`,
+        status: "OPEN",
+        createdById: session.user.id,
+      },
+    });
+
+    const inv = await tx.eventInvitation.create({
+      data: {
+        groupId: params.groupId,
+        title: body.data.title,
+        date: new Date(body.data.date),
+        location: body.data.location,
+        notes: body.data.notes,
+        createdById: session.user.id,
+        sessionId: linkedSession.id,
+      },
+      include: {
+        createdBy: { select: { id: true, name: true } },
+        responses: true,
+      },
+    });
+
+    return inv;
   });
 
   return NextResponse.json(invitation);

@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, MapPin, StickyNote, Trash2, CalendarDays, Clock, Share2, Check } from "lucide-react";
+import { Loader2, MapPin, StickyNote, Trash2, CalendarDays, Clock, Share2, Check, ExternalLink } from "lucide-react";
 
 interface Response {
   id: string;
@@ -20,6 +21,7 @@ interface Invitation {
   location?: string | null;
   notes?: string | null;
   createdById: string;
+  sessionId?: string | null;
   createdBy: { id: string; name: string };
   responses: Response[];
 }
@@ -158,11 +160,11 @@ export function InvitationCard({ invitation, groupId, currentUserId, isAdmin, to
         </div>
       )}
 
-      {/* Share button */}
-      <div className="px-5 py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+      {/* Share button + session link */}
+      <div className="px-5 py-2 flex gap-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
         <button
           onClick={copyLink}
-          className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all"
+          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all"
           style={{
             background: copied ? "rgba(52,211,153,0.08)" : "rgba(212,160,23,0.05)",
             border: `1px solid ${copied ? "rgba(52,211,153,0.25)" : "rgba(212,160,23,0.15)"}`,
@@ -170,11 +172,25 @@ export function InvitationCard({ invitation, groupId, currentUserId, isAdmin, to
           }}
         >
           {copied ? (
-            <><Check className="h-4 w-4" />הועתק! שלח בוואטסאפ/טלגרם</>
+            <><Check className="h-4 w-4" />הועתק!</>
           ) : (
-            <><Share2 className="h-4 w-4" />העתק הזמנה לשיתוף</>
+            <><Share2 className="h-4 w-4" />שיתוף</>
           )}
         </button>
+        {invitation.sessionId && (
+          <Link
+            href={`/groups/${groupId}/sessions/${invitation.sessionId}`}
+            className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all shrink-0"
+            style={{
+              background: "rgba(99,102,241,0.08)",
+              border: "1px solid rgba(99,102,241,0.25)",
+              color: "#818cf8",
+            }}
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            כנס לערב
+          </Link>
+        )}
       </div>
 
       {/* Forecast */}
