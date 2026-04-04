@@ -56,7 +56,7 @@ export function SessionSettlements({ groupId, sessionId, currentUserId }: Props)
     <Card>
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          💸 פשרות
+          💸 חישגוזים
           {pending.length > 0 && (
             <Badge variant="destructive" className="text-xs">{pending.length} ממתינות</Badge>
           )}
@@ -106,10 +106,10 @@ export function SessionSettlements({ groupId, sessionId, currentUserId }: Props)
           );
         })}
         {paid.length > 0 && pending.length > 0 && (
-          <p className="text-xs text-muted-foreground pt-1">{paid.length} מתוך {settlements.length} פשרות שולמו</p>
+          <p className="text-xs text-muted-foreground pt-1">{paid.length} מתוך {settlements.length} חישגוזים שולמו</p>
         )}
         {pending.length === 0 && (
-          <p className="text-xs text-emerald-400 font-medium">✅ כל הפשרות שולמו!</p>
+          <p className="text-xs text-emerald-400 font-medium">✅ כל החישגוזים שולמו!</p>
         )}
       </CardContent>
     </Card>
