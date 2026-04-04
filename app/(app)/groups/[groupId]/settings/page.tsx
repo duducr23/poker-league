@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { isGroupAdmin } from "@/lib/permissions";
 import { formatDate } from "@/lib/utils";
-import { Users, Key, Settings } from "lucide-react";
+import { Users, Key, Settings, Trash2 } from "lucide-react";
 import { SeasonManager } from "@/components/settings/season-manager";
 import { MembersManager } from "@/components/settings/members-manager";
+import { DeleteGroupButton } from "@/components/settings/delete-group-button";
 
 export default async function GroupSettingsPage({ params }: { params: { groupId: string } }) {
   const session = await getServerSession(authOptions);
@@ -96,6 +97,21 @@ export default async function GroupSettingsPage({ params }: { params: { groupId:
           </div>
         </CardContent>
       </Card>
+
+      {/* Danger zone */}
+      {admin && (
+        <Card style={{ borderColor: "rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.03)" }}>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2 text-red-400">
+              <Trash2 className="h-4 w-4" />אזור מסוכן
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between">
+            <p className="text-sm text-slate-400">מחיקת הקבוצה תמחק את כל הנתונים — ערבים, תוצאות ושחקנים. פעולה זו אינה הפיכה.</p>
+            <DeleteGroupButton groupId={params.groupId} groupName={group.name} />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
