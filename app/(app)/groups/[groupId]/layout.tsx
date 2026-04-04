@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppShell } from "@/components/layout/app-shell";
 
 export default async function GroupLayout({
   children,
@@ -34,9 +34,8 @@ export default async function GroupLayout({
     currentUser?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <AppSidebar groups={groups} activeGroupId={params.groupId} canCreateGroup={canCreateGroup} userImage={currentUser?.image} />
-      <main className="flex-1 overflow-y-auto">{children}</main>
-    </div>
+    <AppShell groups={groups} activeGroupId={params.groupId} canCreateGroup={canCreateGroup} userImage={currentUser?.image}>
+      {children}
+    </AppShell>
   );
 }

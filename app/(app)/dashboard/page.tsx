@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/layout/empty-state";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppShell } from "@/components/layout/app-shell";
 import { Users, Plus, Spade, CalendarDays, Trophy, ArrowLeft, TrendingUp, TrendingDown, Flame, Zap, Mail } from "lucide-react";
 import { formatDate, formatCurrency, getStatusLabel, getStatusColor } from "@/lib/utils";
 import { getGroupInsights } from "@/lib/insights";
@@ -57,10 +57,8 @@ export default async function DashboardPage() {
   const insights = firstGroupId ? await getGroupInsights(firstGroupId) : null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <AppSidebar groups={groups} canCreateGroup={canCreateGroup} userImage={currentUser?.image} />
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
+    <AppShell groups={groups} canCreateGroup={canCreateGroup} userImage={currentUser?.image}>
+        <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 md:space-y-8">
           <div>
             <h1 className="text-3xl font-bold">שלום, {session.user.name?.split(" ")[0]} 👋</h1>
             <p className="text-muted-foreground mt-1">ברוך הבא ל-Poker League שלך</p>
@@ -217,7 +215,6 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+    </AppShell>
   );
 }

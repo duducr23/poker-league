@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppShell } from "@/components/layout/app-shell";
 import {
   BookOpen, Users, CalendarDays, Trophy, Mail, Settings,
   Shield, UserCircle2, LogIn, UserPlus, Copy, Eye, Spade,
@@ -106,10 +106,8 @@ export default async function HelpPage() {
     currentUser?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <AppSidebar groups={groups} canCreateGroup={canCreateGroup} userImage={currentUser?.image} />
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-6 md:p-8 max-w-2xl mx-auto space-y-6 pb-16">
+    <AppShell groups={groups} canCreateGroup={canCreateGroup} userImage={currentUser?.image}>
+        <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-6 pb-16">
 
           {/* Header */}
           <div className="text-center py-6">
@@ -231,7 +229,6 @@ export default async function HelpPage() {
             Poker League · כל הזכויות שמורות ♠️
           </p>
         </div>
-      </main>
-    </div>
+    </AppShell>
   );
 }

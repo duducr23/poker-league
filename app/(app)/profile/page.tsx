@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { AppShell } from "@/components/layout/app-shell";
 import { ArrowRight, UserCircle2 } from "lucide-react";
 import Link from "next/link";
 
@@ -28,10 +28,8 @@ export default async function ProfilePage() {
     user?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <AppSidebar groups={groups} canCreateGroup={canCreateGroup} userImage={user?.image} />
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-6 md:p-8 max-w-2xl mx-auto space-y-6">
+    <AppShell groups={groups} canCreateGroup={canCreateGroup} userImage={user?.image}>
+        <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-6">
           <div>
             <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-200 mb-4">
               <ArrowRight className="h-4 w-4" />חזרה לדשבורד
@@ -57,7 +55,6 @@ export default async function ProfilePage() {
             <AvatarPicker currentImage={user?.image} />
           </div>
         </div>
-      </main>
-    </div>
+    </AppShell>
   );
 }
