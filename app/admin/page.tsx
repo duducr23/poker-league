@@ -3,16 +3,28 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { TogglePermission } from "@/components/admin/toggle-permission";
+import { CopyInviteLinks } from "@/components/admin/copy-invite-link";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Users, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
+import { headers } from "next/headers";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
   if (session?.user?.email?.toLowerCase() !== process.env.SUPER_ADMIN_EMAIL?.toLowerCase()) {
     redirect("/dashboard");
   }
+
+  const headersList = headers();
+  const host = headersList.get("host") || "";
+  const proto = host.includes("localhost") ? "http" : "https";
+  const baseUrl = `${proto}://${host}`;
+
+  const groups = await prisma.group.findMany({
+    select: { id: true, name: true, inviteCode: true },
+    orderBy: { createdAt: "asc" },
+  });
 
   const users = await prisma.user.findMany({
     select: {
@@ -83,6 +95,9 @@ export default async function AdminPage() {
             </p>
           </div>
         </div>
+
+        {/* Invite links */}
+        <CopyInviteLinks groups={groups} baseUrl={baseUrl} />
 
         {/* Users table */}
         <div
