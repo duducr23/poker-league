@@ -45,6 +45,8 @@ function NewGroupForm() {
     router.push(`/groups/${json.groupId}`);
   }
 
+  const canCreate = defaultTab === "create" || searchParams.get("create") === "1";
+
   return (
     <div className="p-6 md:p-8 max-w-lg mx-auto">
       <div className="mb-6">

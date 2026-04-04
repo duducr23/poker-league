@@ -12,6 +12,17 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return NextResponse.json({ error: "לא מחובר" }, { status: 401 });
 
+  const isSuperAdmin = session.user.email === process.env.SUPER_ADMIN_EMAIL;
+  if (!isSuperAdmin) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { canCreateGroup: true },
+    });
+    if (!user?.canCreateGroup) {
+      return NextResponse.json({ error: "אין לך הרשאה ליצור קבוצה. פנה למנהל האפליקציה." }, { status: 403 });
+    }
+  }
+
   try {
     const { name } = schema.parse(await req.json());
     const inviteCode = randomBytes(4).toString("hex").toUpperCase();

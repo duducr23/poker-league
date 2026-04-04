@@ -11,17 +11,20 @@ interface Group { id: string; name: string }
 interface AppSidebarProps {
   groups?: Group[];
   activeGroupId?: string;
+  canCreateGroup?: boolean;
 }
 
 const SUITS = ["♠", "♥", "♦", "♣"];
 
-export function AppSidebar({ groups = [], activeGroupId }: AppSidebarProps) {
+export function AppSidebar({ groups = [], activeGroupId, canCreateGroup = false }: AppSidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
 
   const mainLinks = [
     { href: "/dashboard", label: "לוח בקרה", icon: LayoutDashboard, suit: "♠" },
-    { href: "/groups/new", label: "קבוצה חדשה", icon: Users, suit: "♣" },
+    ...(canCreateGroup
+      ? [{ href: "/groups/new", label: "קבוצה חדשה", icon: Users, suit: "♣" }]
+      : [{ href: "/groups/new?join=1", label: "הצטרף לקבוצה", icon: Users, suit: "♣" }]),
   ];
 
   const groupLinks = activeGroupId

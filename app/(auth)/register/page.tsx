@@ -1,12 +1,11 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,15 +19,21 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteCode = searchParams.get("invite") || "";
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   async function onSubmit(data: FormData) {
     setLoading(true);
-    const res = await fetch("/api/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+    const res = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...data, inviteCode: inviteCode || undefined }),
+    });
     const json = await res.json();
     if (!res.ok) {
       setLoading(false);
@@ -36,7 +41,11 @@ export default function RegisterPage() {
       return;
     }
     await signIn("credentials", { email: data.email, password: data.password, redirect: false });
-    router.push("/dashboard");
+    if (json.groupId) {
+      router.push(`/groups/${json.groupId}`);
+    } else {
+      router.push("/dashboard");
+    }
     router.refresh();
   }
 
@@ -50,8 +59,18 @@ export default function RegisterPage() {
       }}
     >
       <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-slate-100 mb-1">הצטרף לליגה 🃏</h1>
-        <p className="text-sm text-slate-500">צור חשבון חדש</p>
+        <h1 className="text-2xl font-bold text-slate-100 mb-1">
+          {inviteCode ? "הצטרף לליגה 🃏" : "הצטרף לליגה 🃏"}
+        </h1>
+        <p className="text-sm text-slate-500">
+          {inviteCode ? "צור חשבון והצטרף לקבוצה אוטומטית" : "צור חשבון חדש"}
+        </p>
+        {inviteCode && (
+          <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium"
+            style={{ background: "rgba(212,160,23,0.1)", color: "#d4a017", border: "1px solid rgba(212,160,23,0.2)" }}>
+            קוד הזמנה: {inviteCode}
+          </div>
+        )}
         <div className="mt-4 h-px mx-auto w-24" style={{ background: "linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent)" }} />
       </div>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -76,7 +95,7 @@ export default function RegisterPage() {
           {errors.password && <p className="text-xs text-red-400">{errors.password.message}</p>}
         </div>
         <Button type="submit" className="w-full mt-2" size="lg" disabled={loading}>
-          {loading ? <><Loader2 className="h-4 w-4 animate-spin" />נרשם...</> : "הירשם ♦"}
+          {loading ? <><Loader2 className="h-4 w-4 animate-spin" />נרשם...</> : inviteCode ? "הירשם והצטרף ♦" : "הירשם ♦"}
         </Button>
       </form>
       <div className="mt-4 h-px" style={{ background: "rgba(212,160,23,0.1)" }} />
@@ -85,5 +104,13 @@ export default function RegisterPage() {
         <Link href="/login" className="font-semibold hover:underline" style={{ color: "#d4a017" }}>התחבר</Link>
       </p>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterForm />
+    </Suspense>
   );
 }

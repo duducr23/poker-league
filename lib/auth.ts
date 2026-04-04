@@ -21,17 +21,23 @@ export const authOptions: NextAuthOptions = {
         if (!user) return null;
         const valid = await bcrypt.compare(credentials.password, user.passwordHash);
         if (!valid) return null;
-        return { id: user.id, name: user.name, email: user.email, image: user.image };
+        return { id: user.id, name: user.name, email: user.email, image: user.image, canCreateGroup: user.canCreateGroup };
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user) token.id = user.id;
+      if (user) {
+        token.id = user.id;
+        token.canCreateGroup = (user as any).canCreateGroup ?? false;
+      }
       return token;
     },
     async session({ session, token }) {
-      if (token && session.user) session.user.id = token.id as string;
+      if (token && session.user) {
+        session.user.id = token.id as string;
+        session.user.canCreateGroup = (token.canCreateGroup as boolean) ?? false;
+      }
       return session;
     },
   },

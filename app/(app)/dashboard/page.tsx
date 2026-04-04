@@ -16,6 +16,14 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/login");
 
+  const currentUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { canCreateGroup: true, email: true },
+  });
+  const canCreateGroup =
+    currentUser?.canCreateGroup ||
+    currentUser?.email === process.env.SUPER_ADMIN_EMAIL;
+
   const memberships = await prisma.groupMember.findMany({
     where: { userId: session.user.id },
     include: {
@@ -31,13 +39,14 @@ export default async function DashboardPage() {
 
   const groups = memberships.map((m) => ({ id: m.group.id, name: m.group.name }));
 
+
   // Load insights for the first group (most relevant)
   const firstGroupId = memberships[0]?.group.id;
   const insights = firstGroupId ? await getGroupInsights(firstGroupId) : null;
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <AppSidebar groups={groups} />
+      <AppSidebar groups={groups} canCreateGroup={canCreateGroup} />
       <main className="flex-1 overflow-y-auto">
         <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
           <div>
@@ -45,9 +54,11 @@ export default async function DashboardPage() {
             <p className="text-muted-foreground mt-1">ברוך הבא ל-Poker League שלך</p>
           </div>
           <div className="flex gap-3 flex-wrap">
-            <Link href="/groups/new">
-              <Button className="gap-2"><Plus className="h-4 w-4" />צור קבוצה חדשה</Button>
-            </Link>
+            {canCreateGroup && (
+              <Link href="/groups/new">
+                <Button className="gap-2"><Plus className="h-4 w-4" />צור קבוצה חדשה</Button>
+              </Link>
+            )}
             <Link href="/groups/new?join=1">
               <Button variant="outline" className="gap-2"><Users className="h-4 w-4" />הצטרף עם קוד</Button>
             </Link>
@@ -116,7 +127,7 @@ export default async function DashboardPage() {
           )}
 
           {memberships.length === 0 ? (
-            <EmptyState icon={Spade} title="אין לך קבוצות עדיין" description="צור קבוצה חדשה או הצטרף לקבוצה קיימת עם קוד הזמנה" action={<Link href="/groups/new"><Button>צור קבוצה</Button></Link>} />
+            <EmptyState icon={Spade} title="אין לך קבוצות עדיין" description="הצטרף לקבוצה עם קוד הזמנה" action={<Link href="/groups/new?join=1"><Button>הצטרף עם קוד</Button></Link>} />
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {memberships.map(({ group, role }) => {
