@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, Plus, Users } from "lucide-react";
+import Link from "next/link";
+import { Loader2, Plus, Users, ArrowRight } from "lucide-react";
 
 const createSchema = z.object({ name: z.string().min(2, "שם חייב להכיל לפחות 2 תווים") });
 const joinSchema = z.object({ inviteCode: z.string().min(1, "נא להזין קוד") });
@@ -47,6 +48,9 @@ function NewGroupForm() {
   return (
     <div className="p-6 md:p-8 max-w-lg mx-auto">
       <div className="mb-6">
+        <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-200 mb-4">
+          <ArrowRight className="h-4 w-4" />חזרה לדשבורד
+        </Link>
         <h1 className="text-2xl font-bold">קבוצה חדשה</h1>
         <p className="text-muted-foreground">צור קבוצת פוקר חדשה או הצטרף לקיימת</p>
       </div>

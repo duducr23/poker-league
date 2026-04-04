@@ -11,7 +11,7 @@ import { EmptyState } from "@/components/layout/empty-state";
 import { getLeaderboard } from "@/lib/leaderboard";
 import { isGroupAdmin } from "@/lib/permissions";
 import { formatCurrency, formatDate, getStatusLabel, getStatusColor } from "@/lib/utils";
-import { Trophy, CalendarDays, Plus, Users, TrendingUp, Medal, ArrowLeft } from "lucide-react";
+import { Trophy, CalendarDays, Plus, Users, TrendingUp, Medal, ArrowLeft, Settings } from "lucide-react";
 
 export default async function GroupPage({ params }: { params: { groupId: string } }) {
   const session = await getServerSession(authOptions);
@@ -64,6 +64,11 @@ export default async function GroupPage({ params }: { params: { groupId: string 
           <Link href={`/groups/${params.groupId}/sessions`}>
             <Button variant="outline" className="gap-2"><CalendarDays className="h-4 w-4" />ערבים</Button>
           </Link>
+          {admin && (
+            <Link href={`/groups/${params.groupId}/settings`}>
+              <Button variant="ghost" size="icon" title="הגדרות וניהול חברים"><Settings className="h-4 w-4" /></Button>
+            </Link>
+          )}
         </div>
       </div>
 
