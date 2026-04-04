@@ -21,7 +21,7 @@ export default async function GroupLayout({
     }),
     prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { canCreateGroup: true, email: true },
+      select: { canCreateGroup: true, email: true, image: true },
     }),
   ]);
 
@@ -35,7 +35,7 @@ export default async function GroupLayout({
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <AppSidebar groups={groups} activeGroupId={params.groupId} canCreateGroup={canCreateGroup} />
+      <AppSidebar groups={groups} activeGroupId={params.groupId} canCreateGroup={canCreateGroup} userImage={currentUser?.image} />
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );

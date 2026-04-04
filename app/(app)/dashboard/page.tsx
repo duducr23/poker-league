@@ -18,7 +18,7 @@ export default async function DashboardPage() {
 
   const currentUser = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { canCreateGroup: true, email: true },
+    select: { canCreateGroup: true, email: true, image: true },
   });
   const canCreateGroup =
     currentUser?.canCreateGroup ||
@@ -46,7 +46,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <AppSidebar groups={groups} canCreateGroup={canCreateGroup} />
+      <AppSidebar groups={groups} canCreateGroup={canCreateGroup} userImage={currentUser?.image} />
       <main className="flex-1 overflow-y-auto">
         <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-8">
           <div>

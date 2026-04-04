@@ -12,11 +12,12 @@ interface AppSidebarProps {
   groups?: Group[];
   activeGroupId?: string;
   canCreateGroup?: boolean;
+  userImage?: string | null;
 }
 
 const SUITS = ["♠", "♥", "♦", "♣"];
 
-export function AppSidebar({ groups = [], activeGroupId, canCreateGroup = false }: AppSidebarProps) {
+export function AppSidebar({ groups = [], activeGroupId, canCreateGroup = false, userImage }: AppSidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
 
@@ -188,20 +189,24 @@ export function AppSidebar({ groups = [], activeGroupId, canCreateGroup = false 
 
       {/* User footer */}
       <div className="p-4" style={{ borderTop: "1px solid rgba(212,160,23,0.1)" }}>
-        <div className="flex items-center gap-3 mb-3">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback
-              className="text-xs font-bold"
-              style={{ background: "linear-gradient(135deg, #d4a017, #f5c842)", color: "#0a0a12" }}
-            >
-              {session?.user?.name?.slice(0, 2) || "??"}
-            </AvatarFallback>
+        <Link href="/profile" className="flex items-center gap-3 mb-3 rounded-lg p-1.5 transition-all hover:bg-white/5 group">
+          <Avatar className="h-9 w-9 shrink-0">
+            {userImage ? (
+              <img src={userImage} alt="avatar" className="h-full w-full rounded-full object-cover bg-slate-800 p-0.5" />
+            ) : (
+              <AvatarFallback
+                className="text-xs font-bold"
+                style={{ background: "linear-gradient(135deg, #d4a017, #f5c842)", color: "#0a0a12" }}
+              >
+                {session?.user?.name?.slice(0, 2) || "??"}
+              </AvatarFallback>
+            )}
           </Avatar>
           <div className="flex-1 overflow-hidden">
-            <p className="text-sm font-medium truncate text-slate-100">{session?.user?.name}</p>
-            <p className="text-xs truncate" style={{ color: "rgba(212,160,23,0.5)" }}>{session?.user?.email}</p>
+            <p className="text-sm font-medium truncate text-slate-100 group-hover:text-yellow-400 transition-colors">{session?.user?.name}</p>
+            <p className="text-xs truncate" style={{ color: "rgba(212,160,23,0.4)" }}>לחץ לשינוי אווטאר</p>
           </div>
-        </div>
+        </Link>
         <Button
           variant="ghost"
           size="sm"
