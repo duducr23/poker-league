@@ -11,6 +11,7 @@ import { SeasonManager } from "@/components/settings/season-manager";
 import { MembersManager } from "@/components/settings/members-manager";
 import { DeleteGroupButton } from "@/components/settings/delete-group-button";
 import { CreatePlayerButton } from "@/components/settings/create-player-button";
+import { CopyInviteCode } from "@/components/settings/copy-invite-code";
 
 export default async function GroupSettingsPage({ params }: { params: { groupId: string } }) {
   const session = await getServerSession(authOptions);
@@ -43,10 +44,8 @@ export default async function GroupSettingsPage({ params }: { params: { groupId:
       <Card>
         <CardHeader><CardTitle className="text-base flex items-center gap-2"><Key className="h-4 w-4" />קוד הזמנה</CardTitle></CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4">
-            <code className="text-2xl font-bold tracking-widest text-primary bg-primary/5 px-4 py-2 rounded-lg">
-              {group.inviteCode}
-            </code>
+          <div className="space-y-2">
+            <CopyInviteCode code={group.inviteCode} />
             <p className="text-sm text-muted-foreground">שתף קוד זה עם שחקנים שרוצים להצטרף לקבוצה</p>
           </div>
         </CardContent>
