@@ -17,15 +17,19 @@ model User {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  groupMemberships      GroupMember[]
-  createdGroups         Group[]                    @relation("GroupOwner")
-  createdSessions       Session[]                  @relation("SessionCreator")
-  sessionResults        SessionParticipantResult[]
-  achievements          Achievement[]
-  settlementsFrom       Settlement[]               @relation("SettlementFrom")
-  settlementsTo         Settlement[]               @relation("SettlementTo")
-  createdInvitations    EventInvitation[]          @relation("InvitationCreator")
-  invitationResponses   InvitationResponse[]
+  groupMemberships        GroupMember[]
+  createdGroups           Group[]                    @relation("GroupOwner")
+  createdSessions         Session[]                  @relation("SessionCreator")
+  sessionResults          SessionParticipantResult[]
+  achievements            Achievement[]
+  settlementsFrom         Settlement[]               @relation("SettlementFrom")
+  settlementsTo           Settlement[]               @relation("SettlementTo")
+  createdInvitations      EventInvitation[]          @relation("InvitationCreator")
+  invitationResponses     InvitationResponse[]
+  financialRequests       SessionFinancialRequest[]  @relation("RequestOwner")
+  createdFinancialReqs    SessionFinancialRequest[]  @relation("RequestCreator")
+  approvedFinancialReqs   SessionFinancialRequest[]  @relation("RequestApprover")
+  declinedFinancialReqs   SessionFinancialRequest[]  @relation("RequestDecliner")
 }
 
 model Group {
@@ -91,12 +95,13 @@ model Session {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  group       Group                      @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  season      Season?                    @relation(fields: [seasonId], references: [id], onDelete: SetNull)
-  createdBy   User                       @relation("SessionCreator", fields: [createdById], references: [id])
-  results     SessionParticipantResult[]
-  settlements Settlement[]
-  achievements Achievement[]
+  group               Group                      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  season              Season?                    @relation(fields: [seasonId], references: [id], onDelete: SetNull)
+  createdBy           User                       @relation("SessionCreator", fields: [createdById], references: [id])
+  results             SessionParticipantResult[]
+  settlements         Settlement[]
+  achievements        Achievement[]
+  financialRequests   SessionFinancialRequest[]
 }
 
 enum SessionStatus {
@@ -115,6 +120,8 @@ model SessionParticipantResult {
   cashOut       Float     @default(0)
   totalInvested Float     @default(0)
   profitLoss    Float     @default(0)
+  finalCashOut  Float     @default(0)
+  maxDrawdown   Float     @default(0)
   isSubmitted   Boolean   @default(false)
   submittedAt   DateTime?
   createdAt     DateTime  @default(now())
@@ -194,4 +201,40 @@ model Settlement {
   toUser   User    @relation("SettlementTo", fields: [toUserId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
+}
+
+enum FinancialRequestType {
+  INITIAL_BUYIN
+  REBUY
+}
+
+enum FinancialRequestStatus {
+  PENDING
+  APPROVED
+  DECLINED
+}
+
+model SessionFinancialRequest {
+  id               String                 @id @default(cuid())
+  sessionId        String
+  userId           String
+  type             FinancialRequestType
+  amount           Float
+  status           FinancialRequestStatus @default(PENDING)
+  createdAt        DateTime               @default(now())
+  createdByUserId  String
+  approvedAt       DateTime?
+  approvedByUserId String?
+  declinedAt       DateTime?
+  declinedByUserId String?
+  updatedAt        DateTime               @updatedAt
+
+  session     Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user        User    @relation("RequestOwner",    fields: [userId],           references: [id])
+  createdBy   User    @relation("RequestCreator",  fields: [createdByUserId],  references: [id])
+  approvedBy  User?   @relation("RequestApprover", fields: [approvedByUserId], references: [id])
+  declinedBy  User?   @relation("RequestDecliner", fields: [declinedByUserId], references: [id])
+
+  @@index([sessionId])
+  @@index([sessionId, userId])
 }

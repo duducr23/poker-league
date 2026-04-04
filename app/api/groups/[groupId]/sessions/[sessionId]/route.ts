@@ -25,6 +25,7 @@ export async function GET(_req: Request, { params }: { params: { groupId: string
         userId: r.userId, userName: r.user.name,
         buyIn: r.buyIn, rebuy: r.rebuy, addons: r.addons, cashOut: r.cashOut,
         totalInvested: r.totalInvested, profitLoss: r.profitLoss,
+        finalCashOut: r.finalCashOut, maxDrawdown: r.maxDrawdown,
         isSubmitted: r.isSubmitted, submittedAt: r.submittedAt,
       })),
     });

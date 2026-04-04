@@ -6,6 +6,7 @@ import { requireGroupAdmin } from "@/lib/permissions";
 import { getSessionValidation } from "@/lib/validations";
 import { computeAndSaveSettlements } from "@/lib/settlements";
 import { computeAndSaveAchievements } from "@/lib/achievements";
+import { validateSessionBeforeClose } from "@/lib/financial-requests";
 
 export async function POST(
   _req: Request,
@@ -23,6 +24,15 @@ export async function POST(
     const validation = await getSessionValidation(params.sessionId);
     if (!validation.isValid) {
       return NextResponse.json({ error: validation.errors.join(", "), validation }, { status: 400 });
+    }
+
+    // Additional validation for sessions using the financial-requests system
+    const financialValidation = await validateSessionBeforeClose(params.sessionId);
+    if (!financialValidation.valid) {
+      return NextResponse.json(
+        { error: financialValidation.errors.join(", "), validation: { ...validation, errors: [...validation.errors, ...financialValidation.errors], isValid: false } },
+        { status: 400 }
+      );
     }
 
     const updated = await prisma.session.update({

@@ -15,6 +15,7 @@ import { SessionResultsTable } from "@/components/sessions/session-results-table
 import { SessionSubmissionProgress } from "@/components/sessions/session-submission-progress";
 import { SessionSettlements } from "@/components/sessions/session-settlements";
 import { AdminSessionPanel } from "@/components/sessions/admin-session-panel";
+import { FinancialRequestsPanel } from "@/components/sessions/financial-requests-panel";
 import { toast } from "@/components/ui/use-toast";
 import { formatDate, formatCurrency, getStatusLabel, getStatusColor } from "@/lib/utils";
 import { Loader2, MapPin, Lock, Unlock, Trash2, Pencil, AlertCircle, CheckCircle2, Share2, Settings2 } from "lucide-react";
@@ -254,6 +255,24 @@ export default function SessionDetailPage() {
               }))} />
             </CardContent>
           </Card>
+
+          {/* Financial requests panel — shown when session is open */}
+          {isOpen && authSession?.user?.id && isParticipant && (
+            <Card style={{ borderColor: "rgba(212,160,23,0.2)", background: "rgba(212,160,23,0.02)" }}>
+              <CardContent className="p-4">
+                <FinancialRequestsPanel
+                  groupId={params.groupId}
+                  sessionId={params.sessionId}
+                  currentUserId={authSession.user.id}
+                  isOpen={isOpen}
+                  participants={data.results.map((r: any) => ({
+                    userId: r.userId,
+                    name: r.userName,
+                  }))}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Admin panel */}
           {isAdmin && showAdminPanel && (
