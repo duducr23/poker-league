@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── Luxury Poker Dark Theme ── */
+    --background: 240 10% 4%;           /* #090910 — near-black */
+    --foreground: 210 15% 92%;          /* #e8eaed — near-white */
+
+    --card: 240 8% 8%;                  /* #12121d — dark card */
+    --card-foreground: 210 15% 92%;
+
+    --popover: 240 8% 8%;
+    --popover-foreground: 210 15% 92%;
+
+    --primary: 43 74% 49%;              /* #d4a017 — casino gold */
+    --primary-foreground: 0 0% 5%;      /* near-black on gold */
+
+    --secondary: 240 6% 14%;            /* #1f1f28 */
+    --secondary-foreground: 210 15% 92%;
+
+    --muted: 240 6% 11%;                /* #191921 */
+    --muted-foreground: 240 5% 52%;     /* #7e7e90 */
+
+    --accent: 240 6% 15%;               /* #222230 */
+    --accent-foreground: 210 15% 92%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 6% 18%;               /* #272733 */
+    --input: 240 6% 13%;                /* #1c1c26 */
+    --ring: 43 74% 49%;                 /* gold focus ring */
+
+    --radius: 0.75rem;
+
+    /* Custom gold scale */
+    --gold: 43 74% 49%;
+    --gold-light: 43 90% 65%;
+    --gold-dim: 43 50% 35%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    direction: rtl;
+    /* Subtle radial gold glow in corners */
+    background-image:
+      radial-gradient(ellipse at 10% 10%, hsla(43, 74%, 49%, 0.06) 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 90%, hsla(43, 74%, 49%, 0.04) 0%, transparent 55%);
+    min-height: 100vh;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: hsl(var(--background)); }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--gold-dim)); }
+
+  /* Input focus glow */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--gold) / 0.5);
+  }
+}
+
+/* ── Utility classes ── */
+@layer utilities {
+  /* Gold gradient text */
+  .text-gold {
+    background: linear-gradient(135deg, #d4a017, #f5d060, #c8920f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Gold shimmer border (top accent) */
+  .border-gold-top {
+    border-top: 1px solid hsl(var(--gold) / 0.4);
+  }
+
+  /* Suit watermark for page backgrounds */
+  .suits-bg::before {
+    content: '♠  ♥  ♦  ♣';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    font-size: 12rem;
+    opacity: 0.018;
+    color: white;
+    pointer-events: none;
+    white-space: nowrap;
+    letter-spacing: 2rem;
+    z-index: 0;
+    user-select: none;
+  }
+
+  /* Glow effects */
+  .glow-gold { box-shadow: 0 0 20px hsl(var(--gold) / 0.25); }
+  .glow-gold-sm { box-shadow: 0 0 10px hsl(var(--gold) / 0.2); }
+
+  /* Card with gold top line */
+  .card-luxury {
+    border-top: 1px solid hsl(var(--gold) / 0.35);
+    box-shadow: 0 1px 24px rgba(0,0,0,0.5), 0 0 0 1px hsl(var(--border));
+  }
+
+  /* Status colors */
+  .profit { @apply text-emerald-400 font-semibold; }
+  .loss   { @apply text-red-400 font-semibold; }
+  .neutral { @apply text-slate-400 font-semibold; }
+}

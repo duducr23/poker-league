@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  image        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  groupMemberships  GroupMember[]
+  createdGroups     Group[]                    @relation("GroupOwner")
+  createdSessions   Session[]                  @relation("SessionCreator")
+  sessionResults    SessionParticipantResult[]
+  achievements      Achievement[]
+  settlementsFrom   Settlement[]               @relation("SettlementFrom")
+  settlementsTo     Settlement[]               @relation("SettlementTo")
+}
+
+model Group {
+  id         String   @id @default(cuid())
+  name       String
+  image      String?
+  inviteCode String   @unique @default(cuid())
+  ownerId    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  owner        User          @relation("GroupOwner", fields: [ownerId], references: [id])
+  members      GroupMember[]
+  sessions     Session[]
+  seasons      Season[]
+  achievements Achievement[]
+}
+
+model GroupMember {
+  id       String    @id @default(cuid())
+  groupId  String
+  userId   String
+  role     GroupRole @default(MEMBER)
+  isFrozen Boolean   @default(false)
+  joinedAt DateTime  @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+}
+
+enum GroupRole {
+  ADMIN
+  MEMBER
+}
+
+model Season {
+  id        String    @id @default(cuid())
+  groupId   String
+  name      String
+  startDate DateTime
+  endDate   DateTime?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sessions Session[]
+
+  @@index([groupId])
+}
+
+model Session {
+  id          String        @id @default(cuid())
+  groupId     String
+  seasonId    String?
+  date        DateTime
+  location    String?
+  notes       String?
+  status      SessionStatus @default(OPEN)
+  createdById String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  group       Group                      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  season      Season?                    @relation(fields: [seasonId], references: [id], onDelete: SetNull)
+  createdBy   User                       @relation("SessionCreator", fields: [createdById], references: [id])
+  results     SessionParticipantResult[]
+  settlements Settlement[]
+  achievements Achievement[]
+}
+
+enum SessionStatus {
+  OPEN
+  CLOSED
+  CANCELLED
+}
+
+model SessionParticipantResult {
+  id            String    @id @default(cuid())
+  sessionId     String
+  userId        String
+  buyIn         Float     @default(0)
+  rebuy         Float     @default(0)
+  addons        Float     @default(0)
+  cashOut       Float     @default(0)
+  totalInvested Float     @default(0)
+  profitLoss    Float     @default(0)
+  isSubmitted   Boolean   @default(false)
+  submittedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+}
+
+model Achievement {
+  id        String   @id @default(cuid())
+  userId    String
+  groupId   String
+  sessionId String?
+  type      String
+  label     String
+  value     Float?
+  awardedAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group   Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  session Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, groupId])
+}
+
+model Settlement {
+  id         String    @id @default(cuid())
+  sessionId  String
+  fromUserId String
+  toUserId   String
+  amount     Float
+  isPaid     Boolean   @default(false)
+  paidAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  session  Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  fromUser User    @relation("SettlementFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User    @relation("SettlementTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
