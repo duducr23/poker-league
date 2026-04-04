@@ -63,10 +63,7 @@ export default async function GroupSettingsPage({ params }: { params: { groupId:
               <Users className="h-4 w-4" />חברי הקבוצה ({group.members.length})
             </CardTitle>
             {admin && (
-              <CreatePlayerButton
-                groupId={params.groupId}
-                onCreated={() => {}}
-              />
+              <CreatePlayerButton groupId={params.groupId} />
             )}
           </div>
         </CardHeader>
