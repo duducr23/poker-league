@@ -160,7 +160,7 @@ model EventInvitation {
   notes       String?
   createdById String
   createdAt   DateTime @default(now())
-  sessionId   String?
+  sessionId   String?  @unique
 
   group     Group                @relation(fields: [groupId], references: [id], onDelete: Cascade)
   createdBy User                 @relation("InvitationCreator", fields: [createdById], references: [id])
