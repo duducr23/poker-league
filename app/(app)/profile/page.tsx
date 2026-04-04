@@ -23,12 +23,11 @@ export default async function ProfilePage() {
   ]);
 
   const groups = memberships.map((m) => ({ id: m.group.id, name: m.group.name }));
-  const canCreateGroup =
-    user?.canCreateGroup ||
-    user?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
+  const isSuperAdmin = user?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
+  const canCreateGroup = user?.canCreateGroup || isSuperAdmin;
 
   return (
-    <AppShell groups={groups} canCreateGroup={canCreateGroup} userImage={user?.image}>
+    <AppShell groups={groups} canCreateGroup={canCreateGroup} isSuperAdmin={isSuperAdmin} userImage={user?.image}>
         <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-6">
           <div>
             <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-200 mb-4">

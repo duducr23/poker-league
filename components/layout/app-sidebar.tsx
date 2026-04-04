@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { LayoutDashboard, Users, LogOut, Trophy, CalendarDays, Settings, ChevronLeft, Mail, BookOpen, X } from "lucide-react";
+import { LayoutDashboard, Users, LogOut, Trophy, CalendarDays, Settings, ChevronLeft, Mail, BookOpen, X, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -12,6 +12,7 @@ interface AppSidebarProps {
   groups?: Group[];
   activeGroupId?: string;
   canCreateGroup?: boolean;
+  isSuperAdmin?: boolean;
   userImage?: string | null;
   mobileOpen?: boolean;
   onClose?: () => void;
@@ -19,7 +20,7 @@ interface AppSidebarProps {
 
 const SUITS = ["♠", "♥", "♦", "♣"];
 
-export function AppSidebar({ groups = [], activeGroupId, canCreateGroup = false, userImage, mobileOpen = false, onClose }: AppSidebarProps) {
+export function AppSidebar({ groups = [], activeGroupId, canCreateGroup = false, isSuperAdmin = false, userImage, mobileOpen = false, onClose }: AppSidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
 
@@ -29,6 +30,9 @@ export function AppSidebar({ groups = [], activeGroupId, canCreateGroup = false,
       ? [{ href: "/groups/new", label: "קבוצה חדשה", icon: Users, suit: "♣" }]
       : [{ href: "/groups/new?join=1", label: "הצטרף לקבוצה", icon: Users, suit: "♣" }]),
     { href: "/help", label: "מדריך למשתמש", icon: BookOpen, suit: "♥" },
+    ...(isSuperAdmin
+      ? [{ href: "/admin", label: "לוח ניהול", icon: ShieldCheck, suit: "♦" }]
+      : []),
   ];
 
   const groupLinks = activeGroupId

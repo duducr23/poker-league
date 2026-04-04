@@ -20,9 +20,8 @@ export default async function DashboardPage() {
     where: { id: session.user.id },
     select: { canCreateGroup: true, email: true, image: true },
   });
-  const canCreateGroup =
-    currentUser?.canCreateGroup ||
-    currentUser?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
+  const isSuperAdmin = currentUser?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
+  const canCreateGroup = currentUser?.canCreateGroup || isSuperAdmin;
 
   const memberships = await prisma.groupMember.findMany({
     where: { userId: session.user.id },
@@ -57,7 +56,7 @@ export default async function DashboardPage() {
   const insights = firstGroupId ? await getGroupInsights(firstGroupId) : null;
 
   return (
-    <AppShell groups={groups} canCreateGroup={canCreateGroup} userImage={currentUser?.image}>
+    <AppShell groups={groups} canCreateGroup={canCreateGroup} isSuperAdmin={isSuperAdmin} userImage={currentUser?.image}>
         <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 md:space-y-8">
           <div>
             <h1 className="text-3xl font-bold">שלום, {session.user.name?.split(" ")[0]} 👋</h1>

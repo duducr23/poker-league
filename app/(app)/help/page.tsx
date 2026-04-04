@@ -101,12 +101,11 @@ export default async function HelpPage() {
   ]);
 
   const groups = memberships.map((m) => ({ id: m.group.id, name: m.group.name }));
-  const canCreateGroup =
-    currentUser?.canCreateGroup ||
-    currentUser?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
+  const isSuperAdmin = currentUser?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
+  const canCreateGroup = currentUser?.canCreateGroup || isSuperAdmin;
 
   return (
-    <AppShell groups={groups} canCreateGroup={canCreateGroup} userImage={currentUser?.image}>
+    <AppShell groups={groups} canCreateGroup={canCreateGroup} isSuperAdmin={isSuperAdmin} userImage={currentUser?.image}>
         <div className="p-4 md:p-8 max-w-2xl mx-auto space-y-6 pb-16">
 
           {/* Header */}

@@ -9,11 +9,12 @@ interface Props {
   groups?: Group[];
   activeGroupId?: string;
   canCreateGroup?: boolean;
+  isSuperAdmin?: boolean;
   userImage?: string | null;
   children: React.ReactNode;
 }
 
-export function AppShell({ groups, activeGroupId, canCreateGroup, userImage, children }: Props) {
+export function AppShell({ groups, activeGroupId, canCreateGroup, isSuperAdmin, userImage, children }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -33,6 +34,7 @@ export function AppShell({ groups, activeGroupId, canCreateGroup, userImage, chi
         groups={groups}
         activeGroupId={activeGroupId}
         canCreateGroup={canCreateGroup}
+        isSuperAdmin={isSuperAdmin}
         userImage={userImage}
         mobileOpen={mobileOpen}
         onClose={() => setMobileOpen(false)}
