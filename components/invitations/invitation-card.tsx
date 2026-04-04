@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, MapPin, StickyNote, Trash2, CalendarDays, Clock } from "lucide-react";
+import { Loader2, MapPin, StickyNote, Trash2, CalendarDays, Clock, Share2, Check } from "lucide-react";
 
 interface Response {
   id: string;
@@ -42,6 +42,15 @@ export function InvitationCard({ invitation, groupId, currentUserId, isAdmin, to
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function copyLink() {
+    const url = `${window.location.origin}/groups/${groupId}/invitations`;
+    const text = `📅 ${invitation.title}\n🕐 ${new Date(invitation.date).toLocaleDateString("he-IL", { weekday: "long", day: "numeric", month: "long" })} בשעה ${new Date(invitation.date).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}${invitation.location ? `\n📍 ${invitation.location}` : ""}${invitation.notes ? `\n📝 ${invitation.notes}` : ""}\n\nלאישור הגעה: ${url}`;
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  }
 
   const myResponse = invitation.responses.find(r => r.userId === currentUserId);
   const coming = invitation.responses.filter(r => r.status === "COMING");
@@ -148,6 +157,25 @@ export function InvitationCard({ invitation, groupId, currentUserId, isAdmin, to
           })}
         </div>
       )}
+
+      {/* Share button */}
+      <div className="px-5 py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+        <button
+          onClick={copyLink}
+          className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all"
+          style={{
+            background: copied ? "rgba(52,211,153,0.08)" : "rgba(212,160,23,0.05)",
+            border: `1px solid ${copied ? "rgba(52,211,153,0.25)" : "rgba(212,160,23,0.15)"}`,
+            color: copied ? "#34d399" : "#d4a017",
+          }}
+        >
+          {copied ? (
+            <><Check className="h-4 w-4" />הועתק! שלח בוואטסאפ/טלגרם</>
+          ) : (
+            <><Share2 className="h-4 w-4" />העתק הזמנה לשיתוף</>
+          )}
+        </button>
+      </div>
 
       {/* Forecast */}
       <div className="px-5 py-3">
