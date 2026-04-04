@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 
 function isSuperAdmin(email?: string | null) {
-  return !!email && email === process.env.SUPER_ADMIN_EMAIL;
+  return !!email && email.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
 }
 
 const schema = z.object({ canCreateGroup: z.boolean() });
