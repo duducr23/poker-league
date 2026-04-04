@@ -10,6 +10,7 @@ import { Users, Key, Settings, Trash2 } from "lucide-react";
 import { SeasonManager } from "@/components/settings/season-manager";
 import { MembersManager } from "@/components/settings/members-manager";
 import { DeleteGroupButton } from "@/components/settings/delete-group-button";
+import { CreatePlayerButton } from "@/components/settings/create-player-button";
 
 export default async function GroupSettingsPage({ params }: { params: { groupId: string } }) {
   const session = await getServerSession(authOptions);
@@ -57,9 +58,17 @@ export default async function GroupSettingsPage({ params }: { params: { groupId:
       {/* Members */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Users className="h-4 w-4" />חברי הקבוצה ({group.members.length})
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Users className="h-4 w-4" />חברי הקבוצה ({group.members.length})
+            </CardTitle>
+            {admin && (
+              <CreatePlayerButton
+                groupId={params.groupId}
+                onCreated={() => {}}
+              />
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <MembersManager
