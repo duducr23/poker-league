@@ -42,8 +42,9 @@ export function AppSidebar({ groups = [], activeGroupId }: AppSidebarProps) {
       }}
     >
       {/* Logo */}
-      <div
-        className="flex items-center gap-3 px-6 py-5"
+      <Link
+        href={activeGroupId ? `/groups/${activeGroupId}` : "/dashboard"}
+        className="flex items-center gap-3 px-6 py-5 transition-opacity hover:opacity-80"
         style={{ borderBottom: "1px solid rgba(212,160,23,0.1)" }}
       >
         <div
@@ -69,7 +70,7 @@ export function AppSidebar({ groups = [], activeGroupId }: AppSidebarProps) {
             Poker League
           </span>
         </div>
-      </div>
+      </Link>
 
       <nav className="flex-1 overflow-y-auto p-4 space-y-6">
         {/* Main nav */}
