@@ -31,7 +31,7 @@ export default async function GroupLayout({
   const groups = memberships.map((m) => ({ id: m.group.id, name: m.group.name }));
   const canCreateGroup =
     currentUser?.canCreateGroup ||
-    currentUser?.email === process.env.SUPER_ADMIN_EMAIL;
+    currentUser?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

@@ -22,7 +22,7 @@ export default async function DashboardPage() {
   });
   const canCreateGroup =
     currentUser?.canCreateGroup ||
-    currentUser?.email === process.env.SUPER_ADMIN_EMAIL;
+    currentUser?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
 
   const memberships = await prisma.groupMember.findMany({
     where: { userId: session.user.id },

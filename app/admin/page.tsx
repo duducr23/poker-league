@@ -9,7 +9,7 @@ import { formatDate } from "@/lib/utils";
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions);
-  if (session?.user?.email !== process.env.SUPER_ADMIN_EMAIL) {
+  if (session?.user?.email?.toLowerCase() !== process.env.SUPER_ADMIN_EMAIL?.toLowerCase()) {
     redirect("/dashboard");
   }
 

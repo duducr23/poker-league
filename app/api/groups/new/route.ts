@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return NextResponse.json({ error: "לא מחובר" }, { status: 401 });
 
-  const isSuperAdmin = session.user.email === process.env.SUPER_ADMIN_EMAIL;
+  const isSuperAdmin = session.user.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
   if (!isSuperAdmin) {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
