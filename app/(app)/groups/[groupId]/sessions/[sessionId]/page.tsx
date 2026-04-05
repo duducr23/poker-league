@@ -130,7 +130,27 @@ export default function SessionDetailPage() {
             </span>
           </div>
           {data.location && (
-            <p className="text-muted-foreground flex items-center gap-1 mt-1"><MapPin className="h-4 w-4" />{data.location}</p>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <p className="text-muted-foreground flex items-center gap-1"><MapPin className="h-4 w-4" />{data.location}</p>
+              <a
+                href={`https://waze.com/ul?q=${encodeURIComponent(data.location)}&navigate=yes`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
+                style={{ background: "rgba(0,210,100,0.1)", color: "#00d264", border: "1px solid rgba(0,210,100,0.2)" }}
+              >
+                🚗 Waze
+              </a>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.location)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
+                style={{ background: "rgba(66,133,244,0.1)", color: "#4285f4", border: "1px solid rgba(66,133,244,0.2)" }}
+              >
+                🗺️ Maps
+              </a>
+            </div>
           )}
         </div>
         <div className="flex gap-2 flex-wrap">

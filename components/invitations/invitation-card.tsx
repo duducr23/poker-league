@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, MapPin, StickyNote, Trash2, CalendarDays, Clock, Share2, Check, ExternalLink, Pencil, X, Save } from "lucide-react";
+import { Loader2, MapPin, StickyNote, Trash2, CalendarDays, Clock, Share2, Check, ExternalLink, Pencil, X, Save, Navigation } from "lucide-react";
 
 interface Response {
   id: string;
@@ -158,8 +158,31 @@ export function InvitationCard({ invitation, groupId, currentUserId, isAdmin, to
                 {date.toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}
               </span>
               {invitation.location && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />{invitation.location}
+                <span className="flex items-center gap-1.5 flex-wrap">
+                  <MapPin className="h-3 w-3 shrink-0" />
+                  <span>{invitation.location}</span>
+                  <a
+                    href={`https://waze.com/ul?q=${encodeURIComponent(invitation.location)}&navigate=yes`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium transition-opacity hover:opacity-80"
+                    style={{ background: "rgba(0,210,100,0.12)", color: "#00d264", border: "1px solid rgba(0,210,100,0.25)" }}
+                    title="פתח ב-Waze"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    🚗 Waze
+                  </a>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(invitation.location)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium transition-opacity hover:opacity-80"
+                    style={{ background: "rgba(66,133,244,0.12)", color: "#4285f4", border: "1px solid rgba(66,133,244,0.25)" }}
+                    title="פתח ב-Google Maps"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    🗺️ Maps
+                  </a>
                 </span>
               )}
             </div>
