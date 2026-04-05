@@ -30,6 +30,13 @@ model User {
   createdFinancialReqs    SessionFinancialRequest[]  @relation("RequestCreator")
   approvedFinancialReqs   SessionFinancialRequest[]  @relation("RequestApprover")
   declinedFinancialReqs   SessionFinancialRequest[]  @relation("RequestDecliner")
+
+  expensesPaidBy          SessionExpense[]           @relation("ExpensePaidBy")
+  expensesCreatedBy       SessionExpense[]           @relation("ExpenseCreatedBy")
+  expenseChargesPaying    SessionExpenseCharge[]     @relation("ChargePayer")
+  expenseChargesReceiving SessionExpenseCharge[]     @relation("ChargeReceiver")
+  expenseChargesApproved  SessionExpenseCharge[]     @relation("ChargeApprovedBy")
+  expenseChargesDeclined  SessionExpenseCharge[]     @relation("ChargeDeclinedBy")
 }
 
 model Group {
@@ -103,6 +110,7 @@ model Session {
   achievements        Achievement[]
   financialRequests   SessionFinancialRequest[]
   invitation          EventInvitation?           @relation("InvitationSession")
+  expenses            SessionExpense[]
 }
 
 enum SessionStatus {
@@ -240,4 +248,64 @@ model SessionFinancialRequest {
 
   @@index([sessionId])
   @@index([sessionId, userId])
+}
+
+// ─── Session Expenses ───────────────────────────────────────────────────────
+
+enum SplitMethod {
+  EQUAL
+  MANUAL
+}
+
+enum ExpenseChargeStatus {
+  PENDING_PAYMENT
+  PROOF_UPLOADED
+  APPROVED
+  DECLINED
+  CANCELLED
+}
+
+model SessionExpense {
+  id              String      @id @default(cuid())
+  sessionId       String
+  title           String
+  description     String?
+  totalAmount     Float
+  paidByUserId    String
+  splitMethod     SplitMethod @default(EQUAL)
+  createdByUserId String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  session   Session                @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  paidBy    User                   @relation("ExpensePaidBy",    fields: [paidByUserId],    references: [id])
+  createdBy User                   @relation("ExpenseCreatedBy", fields: [createdByUserId], references: [id])
+  charges   SessionExpenseCharge[]
+
+  @@index([sessionId])
+}
+
+model SessionExpenseCharge {
+  id               String              @id @default(cuid())
+  expenseId        String
+  payerUserId      String
+  receiverUserId   String
+  amount           Float
+  status           ExpenseChargeStatus @default(PENDING_PAYMENT)
+  proofImageUrl    String?
+  paymentMarkedAt  DateTime?
+  approvedAt       DateTime?
+  approvedByUserId String?
+  declinedAt       DateTime?
+  declinedByUserId String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  expense    SessionExpense @relation(fields: [expenseId],        references: [id], onDelete: Cascade)
+  payer      User           @relation("ChargePayer",      fields: [payerUserId],      references: [id])
+  receiver   User           @relation("ChargeReceiver",   fields: [receiverUserId],   references: [id])
+  approvedBy User?          @relation("ChargeApprovedBy", fields: [approvedByUserId], references: [id])
+  declinedBy User?          @relation("ChargeDeclinedBy", fields: [declinedByUserId], references: [id])
+
+  @@index([expenseId])
 }

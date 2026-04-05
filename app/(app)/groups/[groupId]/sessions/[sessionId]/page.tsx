@@ -16,6 +16,7 @@ import { SessionSubmissionProgress } from "@/components/sessions/session-submiss
 import { SessionSettlements } from "@/components/sessions/session-settlements";
 import { AdminSessionPanel } from "@/components/sessions/admin-session-panel";
 import { FinancialRequestsPanel } from "@/components/sessions/financial-requests-panel";
+import { SessionExpensesPanel } from "@/components/sessions/session-expenses-panel";
 import { toast } from "@/components/ui/use-toast";
 import { formatDate, formatCurrency, getStatusLabel, getStatusColor } from "@/lib/utils";
 import { Loader2, MapPin, Lock, Unlock, Trash2, Pencil, AlertCircle, CheckCircle2, Share2, Settings2 } from "lucide-react";
@@ -269,6 +270,26 @@ export default function SessionDetailPage() {
                     userId: r.userId,
                     name: r.userName,
                   }))}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Session Expenses — food / shared purchases */}
+          {isParticipant && authSession?.user?.id && (
+            <Card style={{ borderColor: "rgba(212,160,23,0.15)", background: "rgba(13,13,24,0.6)" }}>
+              <CardContent className="p-4">
+                <SessionExpensesPanel
+                  sessionId={params.sessionId}
+                  groupId={params.groupId}
+                  currentUserId={authSession.user.id}
+                  sessionStatus={data.status}
+                  participants={data.results.map((r: any) => ({
+                    userId: r.userId,
+                    name: r.userName,
+                    image: r.userImage ?? null,
+                  }))}
+                  isAdmin={isAdmin}
                 />
               </CardContent>
             </Card>
