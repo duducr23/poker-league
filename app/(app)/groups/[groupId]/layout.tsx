@@ -30,7 +30,8 @@ export default async function GroupLayout({
 
   const groups = memberships.map((m) => ({ id: m.group.id, name: m.group.name }));
   const isSuperAdmin = currentUser?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
-  const canCreateGroup = currentUser?.canCreateGroup || isSuperAdmin;
+  const isAnyGroupAdmin = memberships.some((m) => m.role === "ADMIN");
+  const canCreateGroup = currentUser?.canCreateGroup || isSuperAdmin || isAnyGroupAdmin;
 
   return (
     <AppShell groups={groups} activeGroupId={params.groupId} canCreateGroup={canCreateGroup} isSuperAdmin={isSuperAdmin} userImage={currentUser?.image}>

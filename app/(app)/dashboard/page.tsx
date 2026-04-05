@@ -11,6 +11,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Users, Plus, Spade, CalendarDays, Trophy, ArrowLeft, TrendingUp, TrendingDown, Flame, Zap, Mail } from "lucide-react";
 import { formatDate, formatCurrency, getStatusLabel, getStatusColor } from "@/lib/utils";
 import { getGroupInsights } from "@/lib/insights";
+import { CopyCodeButton } from "@/components/ui/copy-code-button";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -21,7 +22,8 @@ export default async function DashboardPage() {
     select: { canCreateGroup: true, email: true, image: true },
   });
   const isSuperAdmin = currentUser?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
-  const canCreateGroup = currentUser?.canCreateGroup || isSuperAdmin;
+  const isAnyGroupAdmin = memberships.some((m) => m.role === "ADMIN");
+  const canCreateGroup = currentUser?.canCreateGroup || isSuperAdmin || isAnyGroupAdmin;
 
   const memberships = await prisma.groupMember.findMany({
     where: { userId: session.user.id },
@@ -35,6 +37,8 @@ export default async function DashboardPage() {
     },
     orderBy: { joinedAt: "asc" },
   });
+
+
 
   const groups = memberships.map((m) => ({ id: m.group.id, name: m.group.name }));
 
@@ -184,9 +188,12 @@ export default async function DashboardPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="flex gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{group.members.length} חברים</span>
-                        <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />{group.sessions.length} ערבים</span>
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" />{group.members.length} חברים</span>
+                          <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />{group.sessions.length} ערבים</span>
+                        </div>
+                        <CopyCodeButton code={(group as any).inviteCode} />
                       </div>
                       {lastSession && (
                         <div className="rounded-md bg-muted p-3 text-sm">

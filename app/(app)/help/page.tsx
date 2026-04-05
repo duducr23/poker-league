@@ -5,11 +5,10 @@ import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import {
   BookOpen, Users, CalendarDays, Trophy, Mail, Settings,
-  Shield, UserCircle2, LogIn, UserPlus, Copy, Eye, Spade,
-  ChevronDown, Star, Lock, Unlock, Trash2, Share2, Check,
-  CalendarPlus, BarChart3, PlusCircle, ArrowLeft
+  Shield, UserCircle2, LogIn, Copy, Eye, Spade,
+  Star, Share2, CalendarPlus, BarChart3, ArrowLeft,
+  Receipt, Pencil, Trash2, Snowflake, ShieldCheck, Plus
 } from "lucide-react";
-import Link from "next/link";
 
 function Section({ icon: Icon, title, children }: { icon: any; title: string; children: React.ReactNode }) {
   return (
@@ -62,17 +61,6 @@ function Tip({ icon: Icon = Star, text }: { icon?: any; text: string }) {
   );
 }
 
-function Badge2({ children, color = "#d4a017" }: { children: React.ReactNode; color?: string }) {
-  return (
-    <span
-      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-      style={{ background: `${color}18`, color, border: `1px solid ${color}30` }}
-    >
-      {children}
-    </span>
-  );
-}
-
 function Row({ icon, label, desc }: { icon: string; label: string; desc: string }) {
   return (
     <div className="flex items-start gap-3 py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
@@ -82,6 +70,17 @@ function Row({ icon, label, desc }: { icon: string; label: string; desc: string 
         <p className="text-xs text-slate-500 mt-0.5">{desc}</p>
       </div>
     </div>
+  );
+}
+
+function NewBadge() {
+  return (
+    <span
+      className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold ml-1"
+      style={{ background: "rgba(52,211,153,0.15)", color: "#34d399", border: "1px solid rgba(52,211,153,0.3)" }}
+    >
+      חדש
+    </span>
   );
 }
 
@@ -102,7 +101,8 @@ export default async function HelpPage() {
 
   const groups = memberships.map((m) => ({ id: m.group.id, name: m.group.name }));
   const isSuperAdmin = currentUser?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
-  const canCreateGroup = currentUser?.canCreateGroup || isSuperAdmin;
+  const isAnyGroupAdmin = memberships.some((m) => m.role === "ADMIN");
+  const canCreateGroup = currentUser?.canCreateGroup || isSuperAdmin || isAnyGroupAdmin;
 
   return (
     <AppShell groups={groups} canCreateGroup={canCreateGroup} isSuperAdmin={isSuperAdmin} userImage={currentUser?.image}>
@@ -135,13 +135,14 @@ export default async function HelpPage() {
 
           {/* 2. קבוצות */}
           <Section icon={Users} title="ניהול קבוצות">
-            <Row icon="➕" label="יצירת קבוצה" desc="רק משתמשים שקיבלו הרשאה ממנהל האפליקציה יכולים לפתוח קבוצה חדשה" />
+            <Row icon="➕" label="יצירת קבוצה" desc="מנהלי קבוצה קיימת יכולים לפתוח קבוצה חדשה ישירות מהדשבורד" />
             <Row icon="🔑" label="הצטרפות עם קוד" desc='לחץ "הצטרף עם קוד" בדשבורד, הזן את קוד ההזמנה שקיבלת מהמנהל' />
+            <Row icon="📋" label="העתקת קוד הזמנה מהדשבורד" desc="בכל כרטיס קבוצה בדשבורד — לחץ על כפתור ההעתקה שמציג את הקוד" />
             <Row icon="⚙️" label="הגדרות קבוצה" desc="לחץ על גלגל השיניים בדף הקבוצה — ניהול חברים, קוד הזמנה, מחיקת קבוצה" />
-            <Row icon="📋" label="העתקת קוד הזמנה" desc="בהגדרות — לחץ על קוד ההזמנה כדי להעתיקו ולשלוח לחברים" />
             <Row icon="❄️" label="הקפאת שחקן" desc="בהגדרות → חברים — הקפאת שחקן מסירה אותו מהדירוג בלי למחוק את ההיסטוריה" />
+            <Row icon="🗑️" label={`הסרת שחקן מהקבוצה`} desc="בהגדרות → חברים — לחץ 'הסר' ובחר: שמור נתונים (ממשיך להופיע בהיסטוריה) או מחק הכל" />
             <Row icon="🎭" label="הוספת שחקן ללא רישום" desc="מנהל יכול להוסיף שחקן בשם בלבד — לשחקנים שלא נרשמו לאפליקציה" />
-            <Tip icon={Copy} text="שלח את קוד ההזמנה לחברים וכל אחד יכול להצטרף לבד" />
+            <Tip icon={Copy} text="שלח את קוד ההזמנה לחברים — לחץ על הכפתור בדשבורד והקוד מועתק אוטומטית" />
           </Section>
 
           {/* 3. ערבי משחק */}
@@ -154,14 +155,40 @@ export default async function HelpPage() {
             <Tip text="מנהל יכול לפתוח מצב מנהל 🔧 בדף הסשן לעריכת תוצאות ידנית" />
           </Section>
 
-          {/* 4. חישגוזים */}
+          {/* 4. הוצאות ערב — NEW */}
+          <Section icon={Receipt} title={<>הוצאות ערב (אוכל / קניות משותפות) <NewBadge /></> as any}>
+            <Step num={1} text='בדף הערב — גלול למטה לקטע "הוצאות ערב"' />
+            <Step num={2} text='לחץ "הוצאה חדשה", הזן שם ההוצאה, סכום ומי שילם' />
+            <Step num={3} text="בחר שיטת חלוקה: שווה בין כולם או ידנית לכל משתתף" />
+            <Step num={4} text='כל משתתף שחייב כסף יכול ללחוץ "סמן כשולם" ולהעלות תמונת הוכחה' />
+            <Step num={5} text="מקבל התשלום מאשר או דוחה את ההוכחה" />
+            <Row icon="📸" label="העלאת הוכחת תשלום" desc="לחץ 'סמן כשולם' ← בחר תמונה מהמכשיר — הוכחה נשמרת ומוצגת למקבל" />
+            <Row icon="✅" label="אישור תשלום" desc="מקבל הכסף מאשר את ההוכחה — הסטטוס משתנה ל'אושר' לכולם" />
+            <Row icon="❌" label="דחיית הוכחה" desc="ניתן לדחות ולבקש הוכחה חדשה — התשלום חוזר לסטטוס 'ממתין'" />
+            <Tip text="הרשימה מתרעננת אוטומטית כל 8 שניות — לא צריך לרענן ידנית" />
+          </Section>
+
+          {/* 5. הזמנות לערב */}
+          <Section icon={CalendarPlus} title="הזמנות לערב (RSVP)">
+            <Step num={1} text='לחץ "הזמנות" בסיידבר ← "הזמנה לערב"' />
+            <Step num={2} text="מלא כותרת, תאריך ושעה, מיקום והערות" />
+            <Step num={3} text="כל חברי הקבוצה יראו את ההזמנה בדשבורד ובדף ההזמנות" />
+            <Step num={4} text="כל חבר לוחץ: מגיע ✅ / לא מגיע ❌ / אולי 🤔" />
+            <Row icon="✏️" label={`עריכת הזמנה`} desc="יוצר ההזמנה / מנהל יכולים ללחוץ על אייקון העיפרון 🖊️ בכרטיסיית ההזמנה ולעדכן תאריך/מיקום/הערות" />
+            <Row icon="🗓️" label="קישור לערב" desc="יצירת הזמנה פותחת ערב פוקר אוטומטית — לחץ 'כנס לערב' כדי לעבור לדף הסשן" />
+            <Row icon="📊" label="צפי השתתפות" desc="רואים בזמן אמת כמה מגיעים, כמה לא, כמה עוד לא ענו" />
+            <Row icon="📤" label="שיתוף" desc='לחץ "העתק הזמנה לשיתוף" — מעתיק טקסט מוכן לשליחה בוואטסאפ/טלגרם' />
+            <Tip text="בדשבורד יופיע באנר צהוב כשיש הזמנות שעוד לא ענית עליהן" />
+          </Section>
+
+          {/* 6. חישגוזים */}
           <Section icon={ArrowLeft} title="חישגוזים (התחשבנות)">
             <Row icon="💸" label="מה זה חישגוז?" desc="חישוב מי חייב לשלם למי לאחר סיום הערב" />
             <Row icon="✅" label="סימון תשלום" desc='לחץ "סמן כשולם" לידך כשהעברת כסף — הסטטוס מתעדכן לכולם' />
             <Row icon="📊" label="מעקב" desc="ניתן לראות כמה חישגוזים שולמו וכמה ממתינים" />
           </Section>
 
-          {/* 5. טבלת דירוג */}
+          {/* 7. טבלת דירוג */}
           <Section icon={Trophy} title="טבלת דירוג (ליגה)">
             <Row icon="🏆" label="דירוג שחקנים" desc="מסודר לפי רווח/הפסד כולל בכל הסשנים" />
             <Row icon="📈" label="סטטיסטיקות" desc="רווח ממוצע, מספר ניצחונות, סשנים שהשתתף" />
@@ -169,18 +196,7 @@ export default async function HelpPage() {
             <Tip icon={Star} text="ניתן לייצא את הדירוג לקובץ CSV מדף הדירוג" />
           </Section>
 
-          {/* 6. הזמנות לערב */}
-          <Section icon={CalendarPlus} title="הזמנות לערב (RSVP)">
-            <Step num={1} text='לחץ "הזמנות" בסיידבר ← "הזמנה לערב"' />
-            <Step num={2} text="מלא כותרת, תאריך ושעה, מיקום והערות" />
-            <Step num={3} text="כל חברי הקבוצה יראו את ההזמנה בדשבורד ובדף ההזמנות" />
-            <Step num={4} text="כל חבר לוחץ: מגיע ✅ / לא מגיע ❌ / אולי 🤔" />
-            <Row icon="📊" label="צפי השתתפות" desc="רואים בזמן אמת כמה מגיעים, כמה לא, כמה עוד לא ענו" />
-            <Row icon="📤" label="שיתוף" desc='לחץ "העתק הזמנה לשיתוף" — מעתיק טקסט מוכן לשליחה בוואטסאפ/טלגרם' />
-            <Tip text="בדשבורד יופיע באנר צהוב כשיש הזמנות שעוד לא ענית עליהן" />
-          </Section>
-
-          {/* 7. פרופיל ואווטאר */}
+          {/* 8. פרופיל ואווטאר */}
           <Section icon={UserCircle2} title="פרופיל ואווטאר">
             <Step num={1} text="לחץ על השם שלך בתחתית הסיידבר" />
             <Step num={2} text="בחר סגנון: הרפתקנים / אמוג'י / דמויות / פנים / רובוטים / פיקסל" />
@@ -188,15 +204,15 @@ export default async function HelpPage() {
             <Tip text="האווטאר מופיע בסיידבר וידוע לכל חברי הקבוצה" />
           </Section>
 
-          {/* 8. לוח ניהול */}
+          {/* 9. לוח ניהול */}
           <Section icon={Shield} title="לוח ניהול (מנהל אפליקציה בלבד)">
-            <Row icon="🔐" label="כניסה ל-/admin" desc="רק מנהל האפליקציה (SUPER_ADMIN) יכול לגשת לדף זה" />
+            <Row icon="🔐" label="כניסה ל-/admin" desc="רק מנהל האפליקציה (SUPER_ADMIN) יכול לגשת לדף זה — מופיע בסיידבר עם אייקון מגן" />
             <Row icon="✅" label="הרשאת פתיחת קבוצה" desc="הפעל/כבה הרשאה לכל משתמש לפתוח קבוצות חדשות" />
             <Row icon="🔗" label="קישורי הרשמה" desc="העתק קישור הרשמה כללי או עם קוד קבוצה ספציפי לשיתוף" />
             <Tip icon={Share2} text="קישור עם קוד: /register?invite=XXX — הנרשם מצטרף לקבוצה אוטומטית אחרי ההרשמה" />
           </Section>
 
-          {/* 9. התקנה כאפליקציה */}
+          {/* 10. התקנה כאפליקציה */}
           <Section icon={Spade} title="התקנה כאפליקציה (PWA)">
             <Row icon="📱" label="אנדרואיד (Chrome)" desc='לחץ על שלוש הנקודות ← "הוסף למסך הבית"' />
             <Row icon="🍎" label="אייפון (Safari)" desc='לחץ על כפתור השיתוף ← "הוסף למסך הבית"' />
@@ -221,6 +237,7 @@ export default async function HelpPage() {
               <div>⚙️ הגדרות → <code className="text-yellow-600">/groups/ID/settings</code></div>
               <div>🎭 פרופיל → <code className="text-yellow-600">/profile</code></div>
               <div>🔐 ניהול → <code className="text-yellow-600">/admin</code></div>
+              <div>🧾 הוצאות → <code className="text-yellow-600">בדף הערב</code></div>
             </div>
           </div>
 
