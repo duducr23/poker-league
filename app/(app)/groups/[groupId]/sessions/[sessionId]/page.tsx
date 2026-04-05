@@ -276,7 +276,7 @@ export default function SessionDetailPage() {
           )}
 
           {/* Session Expenses — food / shared purchases */}
-          {isParticipant && authSession?.user?.id && (
+          {(isParticipant || isAdmin) && authSession?.user?.id && (
             <Card style={{ borderColor: "rgba(212,160,23,0.15)", background: "rgba(13,13,24,0.6)" }}>
               <CardContent className="p-4">
                 <SessionExpensesPanel
