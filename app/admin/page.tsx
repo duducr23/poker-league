@@ -7,7 +7,7 @@ import { CopyInviteLinks } from "@/components/admin/copy-invite-link";
 import { EditUserForm } from "@/components/admin/edit-user-form";
 import { AdminGroupsPanel } from "@/components/admin/admin-groups-panel";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Users, ArrowRight, Layers } from "lucide-react";
+import { Shield, Users, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { headers } from "next/headers";

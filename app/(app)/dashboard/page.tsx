@@ -17,28 +17,28 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/login");
 
-  const currentUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { canCreateGroup: true, email: true, image: true },
-  });
+  const [currentUser, memberships] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { canCreateGroup: true, email: true, image: true },
+    }),
+    prisma.groupMember.findMany({
+      where: { userId: session.user.id },
+      include: {
+        group: {
+          include: {
+            sessions: { orderBy: { date: "desc" }, take: 1 },
+            members: true,
+          },
+        },
+      },
+      orderBy: { joinedAt: "asc" },
+    }),
+  ]);
+
   const isSuperAdmin = currentUser?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
   const isAnyGroupAdmin = memberships.some((m) => m.role === "ADMIN");
   const canCreateGroup = currentUser?.canCreateGroup || isSuperAdmin || isAnyGroupAdmin;
-
-  const memberships = await prisma.groupMember.findMany({
-    where: { userId: session.user.id },
-    include: {
-      group: {
-        include: {
-          sessions: { orderBy: { date: "desc" }, take: 1 },
-          members: true,
-        },
-      },
-    },
-    orderBy: { joinedAt: "asc" },
-  });
-
-
 
   const groups = memberships.map((m) => ({ id: m.group.id, name: m.group.name }));
 

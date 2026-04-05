@@ -26,6 +26,12 @@ export async function PATCH(
   });
   if (!invitation) return NextResponse.json({ error: "לא נמצא" }, { status: 404 });
 
+  // Re-fetch with sessionId explicitly selected
+  const invitationWithSession = await prisma.eventInvitation.findUnique({
+    where: { id: params.invitationId },
+    select: { sessionId: true, createdById: true },
+  });
+
   const member = invitation.group.members[0];
   const isCreator = invitation.createdById === session.user.id;
   const isAdmin = member?.role === "ADMIN";
@@ -48,14 +54,14 @@ export async function PATCH(
   });
 
   // Sync the linked session's date/location/notes too (if it's still OPEN)
-  if (invitation.sessionId) {
+  if (invitationWithSession?.sessionId) {
     const linkedSession = await prisma.session.findUnique({
-      where: { id: invitation.sessionId },
+      where: { id: invitationWithSession.sessionId },
       select: { status: true },
     });
     if (linkedSession?.status === "OPEN") {
       await prisma.session.update({
-        where: { id: invitation.sessionId },
+        where: { id: invitationWithSession.sessionId! },
         data: {
           date: newDate,
           location: body.data.location ?? null,
