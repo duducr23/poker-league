@@ -25,13 +25,23 @@ export default async function GroupLayout({
     }),
   ]);
 
-  const isMember = memberships.some((m) => m.group.id === params.groupId);
-  if (!isMember) notFound();
-
-  const groups = memberships.map((m) => ({ id: m.group.id, name: m.group.name }));
   const isSuperAdmin = currentUser?.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase();
   const isAnyGroupAdmin = memberships.some((m) => m.role === "ADMIN");
   const canCreateGroup = currentUser?.canCreateGroup || isSuperAdmin || isAnyGroupAdmin;
+
+  const isMember = memberships.some((m) => m.group.id === params.groupId);
+  // Super admin can browse any group even without being a member
+  if (!isMember && !isSuperAdmin) notFound();
+
+  let groups = memberships.map((m) => ({ id: m.group.id, name: m.group.name }));
+  if (isSuperAdmin && !isMember) {
+    const browsedGroup = await prisma.group.findUnique({
+      where: { id: params.groupId },
+      select: { id: true, name: true },
+    });
+    if (!browsedGroup) notFound();
+    groups = [...groups, browsedGroup];
+  }
 
   return (
     <AppShell groups={groups} activeGroupId={params.groupId} canCreateGroup={canCreateGroup} isSuperAdmin={isSuperAdmin} userImage={currentUser?.image}>

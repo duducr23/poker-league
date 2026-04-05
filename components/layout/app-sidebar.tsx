@@ -70,7 +70,7 @@ export function AppSidebar({ groups = [], activeGroupId, canCreateGroup = false,
         style={{ borderBottom: "1px solid rgba(212,160,23,0.1)" }}
       >
         <Link
-          href={activeGroupId ? `/groups/${activeGroupId}` : "/dashboard"}
+          href="/dashboard"
           className="flex items-center gap-3 transition-opacity hover:opacity-80"
           onClick={handleLinkClick}
         >

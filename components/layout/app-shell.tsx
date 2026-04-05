@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { AppSidebar } from "./app-sidebar";
 import { Menu } from "lucide-react";
+import Link from "next/link";
 
 interface Group { id: string; name: string }
 
@@ -51,7 +52,7 @@ export function AppShell({ groups, activeGroupId, canCreateGroup, isSuperAdmin, 
             borderBottom: "1px solid rgba(212,160,23,0.12)",
           }}
         >
-          <div className="flex items-center gap-2">
+          <Link href="/dashboard" className="flex items-center gap-2">
             <div
               className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold"
               style={{ background: "linear-gradient(135deg, #d4a017, #f5d060)", color: "#0a0a12" }}
@@ -69,7 +70,7 @@ export function AppShell({ groups, activeGroupId, canCreateGroup, isSuperAdmin, 
             >
               Poker League
             </span>
-          </div>
+          </Link>
           <button
             onClick={() => setMobileOpen(true)}
             className="flex h-9 w-9 items-center justify-center rounded-lg transition-all"
