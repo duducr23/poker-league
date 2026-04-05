@@ -2,14 +2,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { TogglePermission } from "@/components/admin/toggle-permission";
 import { CopyInviteLinks } from "@/components/admin/copy-invite-link";
-import { EditUserForm } from "@/components/admin/edit-user-form";
 import { AdminGroupsPanel } from "@/components/admin/admin-groups-panel";
-import { Badge } from "@/components/ui/badge";
+import { AdminUsersSection } from "@/components/admin/admin-users-section";
 import { Shield, Users, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { formatDate } from "@/lib/utils";
 import { headers } from "next/headers";
 
 export default async function AdminPage() {
@@ -123,66 +120,19 @@ export default async function AdminPage() {
           }))}
         />
 
-        {/* Users table */}
-        <div
-          className="rounded-xl overflow-hidden"
-          style={{ border: "1px solid rgba(212,160,23,0.12)" }}
-        >
-          <div
-            className="px-5 py-3 flex items-center gap-2"
-            style={{ background: "rgba(212,160,23,0.06)", borderBottom: "1px solid rgba(212,160,23,0.1)" }}
-          >
-            <Users className="h-4 w-4 text-yellow-600" />
-            <span className="text-sm font-semibold text-slate-300">
-              משתמשים רשומים ({realUsers.length})
-            </span>
-          </div>
-          <div className="divide-y" style={{ background: "#0d0d18", borderColor: "rgba(212,160,23,0.07)" }}>
-            {realUsers.map((user) => (
-              <div key={user.id} className="px-5 py-4">
-                <div className="flex items-center gap-4">
-                  <div
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold"
-                    style={{ background: "linear-gradient(135deg, #d4a017, #f5c842)", color: "#0a0a12" }}
-                  >
-                    {user.name.slice(0, 2)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-slate-100 truncate">{user.name}</p>
-                      {user.email?.toLowerCase() === process.env.SUPER_ADMIN_EMAIL?.toLowerCase() && (
-                        <Badge variant="default" className="text-xs">סופר-אדמין</Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-500 truncate">{user.email}</p>
-                    <p className="text-xs text-slate-600 mt-0.5">
-                      {user._count.groupMemberships} קבוצות · הצטרף {formatDate(user.createdAt)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {user.email?.toLowerCase() !== process.env.SUPER_ADMIN_EMAIL?.toLowerCase() && (
-                      <EditUserForm
-                        userId={user.id}
-                        initialName={user.name}
-                        initialEmail={user.email}
-                      />
-                    )}
-                    {user.email?.toLowerCase() !== process.env.SUPER_ADMIN_EMAIL?.toLowerCase() ? (
-                      <TogglePermission userId={user.id} canCreateGroup={user.canCreateGroup} />
-                    ) : (
-                      <Badge variant="outline" className="text-yellow-600 border-yellow-700/40">
-                        גישה מלאה
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-            {realUsers.length === 0 && (
-              <p className="text-center text-slate-500 py-8 text-sm">אין משתמשים רשומים עדיין</p>
-            )}
-          </div>
-        </div>
+        {/* Users section */}
+        <AdminUsersSection
+          users={realUsers.map((u) => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            canCreateGroup: u.canCreateGroup,
+            createdAt: u.createdAt.toISOString(),
+            groupCount: u._count.groupMemberships,
+          }))}
+          groups={groups.map((g) => ({ id: g.id, name: g.name }))}
+          superAdminEmail={process.env.SUPER_ADMIN_EMAIL || ""}
+        />
       </div>
     </div>
   );

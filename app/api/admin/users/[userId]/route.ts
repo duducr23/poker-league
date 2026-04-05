@@ -49,3 +49,29 @@ export async function PATCH(
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
+
+// DELETE — permanently remove a user account
+export async function DELETE(
+  _req: Request,
+  { params }: { params: { userId: string } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!isSuperAdmin(session?.user?.email))
+    return NextResponse.json({ error: "אין הרשאה" }, { status: 403 });
+
+  // Cannot delete super admin
+  const target = await prisma.user.findUnique({
+    where: { id: params.userId },
+    select: { email: true },
+  });
+  if (isSuperAdmin(target?.email))
+    return NextResponse.json({ error: "לא ניתן למחוק סופר-אדמין" }, { status: 400 });
+
+  try {
+    await prisma.user.delete({ where: { id: params.userId } });
+    return NextResponse.json({ ok: true });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "שגיאה";
+    return NextResponse.json({ error: msg }, { status: 500 });
+  }
+}
