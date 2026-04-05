@@ -32,7 +32,7 @@ export async function PATCH(
   if (body.data.canCreateGroup !== undefined) data.canCreateGroup = body.data.canCreateGroup;
   if (body.data.name) data.name = body.data.name;
   if (body.data.email) data.email = body.data.email;
-  if (body.data.password) data.password = await bcrypt.hash(body.data.password, 10);
+  if (body.data.password) data.passwordHash = await bcrypt.hash(body.data.password, 10);
 
   if (Object.keys(data).length === 0)
     return NextResponse.json({ error: "אין שינויים" }, { status: 400 });
