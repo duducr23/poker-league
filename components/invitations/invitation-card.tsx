@@ -48,8 +48,9 @@ function toDatetimeLocal(dateStr: string) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export function InvitationCard({ invitation, groupId, currentUserId, isAdmin, totalMembers }: Props) {
+export function InvitationCard({ invitation: initialInvitation, groupId, currentUserId, isAdmin, totalMembers }: Props) {
   const router = useRouter();
+  const [invitation, setInvitation] = useState(initialInvitation);
   const [loading, setLoading] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -123,6 +124,15 @@ export function InvitationCard({ invitation, groupId, currentUserId, isAdmin, to
       toast({ title: "שגיאה", description: "לא ניתן לשמור", variant: "destructive" });
       return;
     }
+    const updated = await res.json();
+    // Update local state immediately from API response
+    setInvitation(prev => ({
+      ...prev,
+      title: editForm.title,
+      date: updated.date ?? editForm.date,
+      location: editForm.location || null,
+      notes: editForm.notes || null,
+    }));
     toast({ title: "✅ ההזמנה עודכנה" });
     setEditing(false);
     router.refresh();
@@ -207,6 +217,7 @@ export function InvitationCard({ invitation, groupId, currentUserId, isAdmin, to
                   });
                   setEditing(true);
                 }}
+
                 className="text-slate-600 hover:text-yellow-400 transition-colors"
                 title="ערוך הזמנה"
               >
