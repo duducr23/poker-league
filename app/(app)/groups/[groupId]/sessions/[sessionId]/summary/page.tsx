@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Trophy, TrendingUp, TrendingDown, Users, MapPin, Spade } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SessionRoast } from "@/components/sessions/session-roast";
+import { computeRoast, type RoastPlayerInput } from "@/lib/compute-roast";
 
 export default async function SessionSummaryPage({
   params,
@@ -20,6 +22,15 @@ export default async function SessionSummaryPage({
         include: { user: { select: { id: true, name: true } } },
         orderBy: { profitLoss: "desc" },
       },
+      financialRequests: {
+        where: { status: "APPROVED" },
+        select: {
+          userId: true,
+          type: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
 
@@ -30,7 +41,74 @@ export default async function SessionSummaryPage({
   const loser = results[results.length - 1];
   const totalPot = results.reduce((s, r) => s + r.totalInvested, 0);
   const biggestWin = winner?.profitLoss ?? 0;
-  const biggestLoss = loser?.profitLoss ?? 0;
+
+  // ── Roast data computation ─────────────────────────────────────────────────
+
+  // Fetch historical data per player
+  const playerIds = results.map((r) => r.userId);
+
+  const historicalResults = await prisma.sessionParticipantResult.findMany({
+    where: {
+      userId: { in: playerIds },
+      session: { groupId: params.groupId, status: "CLOSED" },
+      sessionId: { not: params.sessionId },
+      isSubmitted: true,
+    },
+    select: { userId: true, profitLoss: true, rebuy: true, buyIn: true },
+  });
+
+  // Historical rebuy requests (approved) for rebuy count
+  const historicalRequests = await prisma.sessionFinancialRequest.findMany({
+    where: {
+      userId: { in: playerIds },
+      session: { groupId: params.groupId },
+      sessionId: { not: params.sessionId },
+      type: "REBUY",
+      status: "APPROVED",
+    },
+    select: { userId: true },
+  });
+
+  // Build per-player roast inputs
+  const roastInputs: RoastPlayerInput[] = results.map((r) => {
+    // Current session rebuy count
+    const myRequests = session.financialRequests.filter((req) => req.userId === r.userId);
+    const myInitialBuyin = myRequests.find((req) => req.type === "INITIAL_BUYIN");
+    const myRebuys = myRequests.filter((req) => req.type === "REBUY");
+    const rebuyCount = myRebuys.length;
+
+    // Fastest rebuy (minutes from initial buyin → first rebuy)
+    let fastestRebuyMinutes: number | null = null;
+    if (myInitialBuyin && myRebuys.length > 0) {
+      const diff =
+        (myRebuys[0].createdAt.getTime() - myInitialBuyin.createdAt.getTime()) / 60000;
+      fastestRebuyMinutes = Math.max(0, Math.round(diff));
+    }
+
+    // Historical stats
+    const myHistory = historicalResults.filter((h) => h.userId === r.userId);
+    const historicalSessions = myHistory.length;
+    const historicalWins = myHistory.filter((h) => h.profitLoss > 0).length;
+    const historicalLosses = myHistory.filter((h) => h.profitLoss < 0).length;
+    const historicalTotalRebuyCount = historicalRequests.filter(
+      (req) => req.userId === r.userId
+    ).length;
+
+    return {
+      userId: r.userId,
+      name: r.user.name,
+      profitLoss: r.profitLoss,
+      totalInvested: r.totalInvested,
+      rebuyCount,
+      fastestRebuyMinutes,
+      historicalSessions,
+      historicalWins,
+      historicalLosses,
+      historicalTotalRebuyCount,
+    };
+  });
+
+  const roast = computeRoast(roastInputs);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
@@ -65,7 +143,7 @@ export default async function SessionSummaryPage({
             </div>
             <div className="p-4 text-center">
               <p className="text-white font-bold text-lg">{formatCurrency(totalPot)}</p>
-              <p className="text-slate-400 text-xs mt-0.5">סה"כ בקופה</p>
+              <p className="text-slate-400 text-xs mt-0.5">סה&quot;כ בקופה</p>
             </div>
             <div className="p-4 text-center">
               <p className="text-green-400 font-bold text-lg">{formatCurrency(biggestWin)}</p>
@@ -111,6 +189,9 @@ export default async function SessionSummaryPage({
             <p className="text-slate-500 text-xs">נוצר ב-Poker League 🃏</p>
           </div>
         </div>
+
+        {/* Funny roast section */}
+        <SessionRoast roast={roast} />
 
         {/* Back button */}
         <div className="mt-4 text-center">
