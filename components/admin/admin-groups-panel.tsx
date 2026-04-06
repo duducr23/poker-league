@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import { Pencil, Check, X, Loader2, UserPlus, Eye } from "lucide-react";
+import { Pencil, Check, X, Loader2, UserPlus, Eye, Users, Hash } from "lucide-react";
 import Link from "next/link";
 
 interface Group {
@@ -52,103 +52,111 @@ export function AdminGroupsPanel({ groups: initialGroups }: { groups: Group[] })
   }
 
   return (
-    <div
-      className="rounded-xl overflow-hidden"
-      style={{ border: "1px solid rgba(212,160,23,0.12)" }}
-    >
+    <div className="rounded-xl overflow-hidden" style={{ border: "1px solid rgba(212,160,23,0.12)" }}>
+      {/* Header */}
       <div
-        className="px-5 py-3 flex items-center gap-2"
+        className="px-4 py-3 flex items-center gap-2"
         style={{ background: "rgba(212,160,23,0.06)", borderBottom: "1px solid rgba(212,160,23,0.1)" }}
       >
         <span className="text-sm font-semibold text-slate-300">
           קבוצות ({groups.length})
         </span>
       </div>
-      <div className="divide-y" style={{ background: "#0d0d18", borderColor: "rgba(212,160,23,0.07)" }}>
-        {groups.map((group) => (
-          <div key={group.id} className="px-5 py-3">
+
+      {/* List */}
+      <div style={{ background: "#0d0d18" }}>
+        {groups.map((group, idx) => (
+          <div
+            key={group.id}
+            className="px-4 py-4"
+            style={{ borderTop: idx > 0 ? "1px solid rgba(255,255,255,0.05)" : undefined }}
+          >
             {editingId === group.id ? (
-              <div className="flex items-center gap-2">
-                <Input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="h-8 text-sm flex-1"
-                  onKeyDown={(e) => e.key === "Enter" && saveGroupName(group.id)}
-                  autoFocus
-                />
-                <Button
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  disabled={savingId === group.id}
-                  onClick={() => saveGroupName(group.id)}
-                >
-                  {savingId === group.id ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Check className="h-3 w-3" />
-                  )}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 w-8 p-0 text-slate-400"
-                  onClick={() => setEditingId(null)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
+              /* Inline edit mode */
+              <div className="space-y-2">
+                <p className="text-xs text-slate-500">שינוי שם הקבוצה</p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="h-9 text-sm flex-1"
+                    onKeyDown={(e) => e.key === "Enter" && saveGroupName(group.id)}
+                    autoFocus
+                  />
+                  <Button
+                    size="sm"
+                    className="h-9 w-9 p-0 shrink-0"
+                    disabled={savingId === group.id}
+                    onClick={() => saveGroupName(group.id)}
+                    style={{ background: "linear-gradient(135deg, #d4a017, #f5c842)", color: "#0a0a12" }}
+                  >
+                    {savingId === group.id
+                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      : <Check className="h-3.5 w-3.5" />}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-9 w-9 p-0 shrink-0 text-slate-400"
+                    onClick={() => setEditingId(null)}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
             ) : (
-              <div className="flex items-center justify-between gap-2 flex-wrap">
+              /* Normal view */
+              <div className="space-y-3">
+                {/* Group info */}
                 <div>
-                  <p className="text-sm font-medium text-slate-100">{group.name}</p>
-                  <p className="text-xs text-slate-500">
-                    {group.memberCount} חברים · קוד:{" "}
-                    <code className="text-yellow-600">{group.inviteCode}</code>
-                  </p>
+                  <p className="text-sm font-semibold text-slate-100">{group.name}</p>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-xs text-slate-500 flex items-center gap-1">
+                      <Users className="h-3 w-3" />{group.memberCount} חברים
+                    </span>
+                    <span className="text-xs text-slate-600 flex items-center gap-1">
+                      <Hash className="h-3 w-3" />
+                      <code className="text-yellow-700 text-xs">{group.inviteCode}</code>
+                    </span>
+                  </div>
                 </div>
-                <div className="flex gap-1 flex-wrap">
+
+                {/* Action buttons — horizontal scroll on very small screens */}
+                <div className="flex items-center gap-2 flex-wrap">
                   <Link href={`/groups/${group.id}`} target="_blank">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 px-2 gap-1 text-xs text-slate-400 hover:text-slate-100"
+                    <button
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                      style={{ background: "rgba(255,255,255,0.05)", color: "#94a3b8", border: "1px solid rgba(255,255,255,0.08)" }}
                     >
-                      <Eye className="h-3 w-3" />צפה
-                    </Button>
+                      <Eye className="h-3.5 w-3.5" />צפה
+                    </button>
                   </Link>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 px-2 gap-1 text-xs text-slate-400 hover:text-slate-100"
-                    onClick={() => {
-                      setEditingId(group.id);
-                      setEditName(group.name);
-                    }}
+                  <button
+                    onClick={() => { setEditingId(group.id); setEditName(group.name); }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                    style={{ background: "rgba(212,160,23,0.08)", color: "#d4a017", border: "1px solid rgba(212,160,23,0.2)" }}
                   >
-                    <Pencil className="h-3 w-3" />שנה שם
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 px-2 gap-1 text-xs"
-                    style={{ color: "#60a5fa" }}
+                    <Pencil className="h-3.5 w-3.5" />שנה שם
+                  </button>
+                  <button
                     disabled={joiningId === group.id}
                     onClick={() => joinGroup(group.id)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50"
+                    style={{ background: "rgba(96,165,250,0.08)", color: "#60a5fa", border: "1px solid rgba(96,165,250,0.2)" }}
                   >
-                    {joiningId === group.id ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <UserPlus className="h-3 w-3" />
-                    )}
+                    {joiningId === group.id
+                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      : <UserPlus className="h-3.5 w-3.5" />}
                     הצטרף כשחקן
-                  </Button>
+                  </button>
                 </div>
               </div>
             )}
           </div>
         ))}
+
         {groups.length === 0 && (
-          <p className="text-center text-slate-500 py-6 text-sm">אין קבוצות עדיין</p>
+          <p className="text-center text-slate-500 py-8 text-sm">אין קבוצות עדיין</p>
         )}
       </div>
     </div>
