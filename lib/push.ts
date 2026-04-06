@@ -2,19 +2,28 @@ import webpush from "web-push";
 import { prisma } from "@/lib/db";
 import { type NotificationPayload } from "./push-payloads";
 
-// Initialize VAPID only if all env vars are present
-const vapidConfigured =
-  !!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
-  !!process.env.VAPID_PRIVATE_KEY &&
-  !!process.env.VAPID_SUBJECT;
+// Lazy VAPID initialisation — only runs at request time, never at build time.
+let vapidInitialised = false;
 
-if (vapidConfigured) {
-  webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT!,
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-    process.env.VAPID_PRIVATE_KEY!
-  );
+function ensureVapid(): boolean {
+  if (vapidInitialised) return true;
+
+  const subject = process.env.VAPID_SUBJECT;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  // Strip any accidental "=" padding from the public key (VAPID requires unpadded base64url)
+  const publicKey = (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "").replace(/=+$/, "");
+
+  if (!subject || !privateKey || !publicKey) return false;
+
+  try {
+    webpush.setVapidDetails(subject, publicKey, privateKey);
+    vapidInitialised = true;
+    return true;
+  } catch {
+    return false;
+  }
 }
+
 
 // ── Subscription management ────────────────────────────────────────────────
 
@@ -97,7 +106,7 @@ export async function sendWebPushToUser(
   userId: string,
   payload: NotificationPayload
 ): Promise<void> {
-  if (!vapidConfigured) return;
+  if (!ensureVapid()) return;
 
   // Check user preferences
   const user = await prisma.user
@@ -148,7 +157,7 @@ export async function sendWebPushToUsers(
   userIds: string[],
   payload: NotificationPayload
 ): Promise<void> {
-  if (!vapidConfigured || !userIds.length) return;
+  if (!ensureVapid() || !userIds.length) return;
   await Promise.allSettled(userIds.map((uid) => sendWebPushToUser(uid, payload)));
 }
 
