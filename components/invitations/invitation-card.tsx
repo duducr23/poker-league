@@ -94,6 +94,21 @@ export function InvitationCard({ invitation: initialInvitation, groupId, current
     });
     setLoading(null);
     if (!res.ok) { toast({ title: "שגיאה", variant: "destructive" }); return; }
+
+    // Update local responses immediately so buttons reflect the new state
+    setInvitation(prev => {
+      const otherResponses = prev.responses.filter(r => r.userId !== currentUserId);
+      const myUser = prev.responses.find(r => r.userId === currentUserId)?.user ?? {
+        id: currentUserId, name: "", image: null,
+      };
+      return {
+        ...prev,
+        responses: [
+          ...otherResponses,
+          { id: `tmp-${Date.now()}`, userId: currentUserId, status, user: myUser },
+        ],
+      };
+    });
     router.refresh();
   }
 
