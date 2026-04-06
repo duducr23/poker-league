@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { requireGroupMember } from "@/lib/permissions";
 import { z } from "zod";
+import { sendPushToUsers } from "@/lib/push";
 
 const bodySchema = z.object({
   proofImageUrl: z.string().optional(),
@@ -74,6 +75,14 @@ export async function POST(
         paymentMarkedAt: new Date(),
       },
     });
+
+    // Notify the receiver (fire-and-forget)
+    sendPushToUsers([charge.receiverUserId], {
+      title: "💸 הוכחת תשלום התקבלה",
+      body: "מישהו העלה הוכחת תשלום — כנס לאשר",
+      url: `/groups/${params.groupId}/sessions/${params.sessionId}`,
+      tag: `expense-proof-${params.chargeId}`,
+    }).catch(() => {});
 
     return NextResponse.json(updated);
   } catch (e: unknown) {

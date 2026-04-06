@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { requireGroupAdmin } from "@/lib/permissions";
 import { z } from "zod";
+import { sendWebPushToUsers } from "@/lib/push";
+import { buildPayload } from "@/lib/push-payloads";
 
 const patchSchema = z.object({
   amount: z.number().positive().optional(),
@@ -42,6 +44,21 @@ export async function PATCH(
         declinedBy: { select: { id: true, name: true } },
       },
     });
+
+    // Notify the request owner on approval/decline (fire-and-forget)
+    if (body.status === "APPROVED" || body.status === "DECLINED") {
+      const notifType = body.status === "APPROVED"
+        ? "FINANCIAL_REQUEST_APPROVED"
+        : "FINANCIAL_REQUEST_DECLINED";
+      sendWebPushToUsers([updated.userId], buildPayload(notifType, {
+        requesterName: updated.user.name,
+        requestType: updated.type,
+        amount: updated.amount,
+        groupId: params.groupId,
+        sessionId: params.sessionId,
+        requestId: params.requestId,
+      })).catch(() => {});
+    }
 
     return NextResponse.json(updated);
   } catch (e: unknown) {

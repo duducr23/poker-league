@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { requireGroupMember } from "@/lib/permissions";
+import { sendPushToUsers } from "@/lib/push";
 
 export async function POST(
   _req: Request,
@@ -64,6 +65,14 @@ export async function POST(
         approvedByUserId: session.user.id,
       },
     });
+
+    // Notify the payer (fire-and-forget)
+    sendPushToUsers([charge.payerUserId], {
+      title: "✅ תשלום אושר",
+      body: "מקבל הכסף אישר את התשלום שלך",
+      url: `/groups/${params.groupId}/sessions/${params.sessionId}`,
+      tag: `expense-approved-${params.chargeId}`,
+    }).catch(() => {});
 
     return NextResponse.json(updated);
   } catch (e: unknown) {

@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { requireGroupMember } from "@/lib/permissions";
 import { z } from "zod";
+import { sendWebPushToUsers } from "@/lib/push";
+import { buildPayload } from "@/lib/push-payloads";
 
 const createSchema = z.object({
   userId: z.string().min(1),
@@ -106,6 +108,26 @@ export async function POST(
         declinedBy: { select: { id: true, name: true } },
       },
     });
+
+    // Notify all session participants (fire-and-forget)
+    prisma.sessionParticipantResult.findMany({
+      where: { sessionId: params.sessionId },
+      select: { userId: true },
+    }).then((participants) => {
+      const recipientIds = participants
+        .map((p) => p.userId)
+        .filter((id) => id !== session.user.id);
+      if (recipientIds.length > 0) {
+        sendWebPushToUsers(recipientIds, buildPayload("FINANCIAL_REQUEST_CREATED", {
+          requesterName: request.user.name,
+          requestType: body.type,
+          amount: body.amount,
+          groupId: params.groupId,
+          sessionId: params.sessionId,
+          requestId: request.id,
+        })).catch(() => {});
+      }
+    }).catch(() => {});
 
     return NextResponse.json(request, { status: 201 });
   } catch (e: unknown) {

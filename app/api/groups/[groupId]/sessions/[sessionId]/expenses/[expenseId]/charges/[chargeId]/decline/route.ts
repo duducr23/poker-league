@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { requireGroupMember } from "@/lib/permissions";
+import { sendPushToUsers } from "@/lib/push";
 
 export async function POST(
   _req: Request,
@@ -64,6 +65,14 @@ export async function POST(
         declinedByUserId: session.user.id,
       },
     });
+
+    // Notify the payer (fire-and-forget)
+    sendPushToUsers([charge.payerUserId], {
+      title: "❌ תשלום נדחה",
+      body: "מקבל הכסף דחה את ההוכחה — יש להעלות הוכחה חדשה",
+      url: `/groups/${params.groupId}/sessions/${params.sessionId}`,
+      tag: `expense-declined-${params.chargeId}`,
+    }).catch(() => {});
 
     return NextResponse.json(updated);
   } catch (e: unknown) {

@@ -7,6 +7,8 @@ import { getSessionValidation } from "@/lib/validations";
 import { computeAndSaveSettlements } from "@/lib/settlements";
 import { computeAndSaveAchievements } from "@/lib/achievements";
 import { validateSessionBeforeClose } from "@/lib/financial-requests";
+import { sendWebPushToUsers } from "@/lib/push";
+import { buildPayload } from "@/lib/push-payloads";
 
 export async function POST(
   _req: Request,
@@ -45,6 +47,22 @@ export async function POST(
       computeAndSaveSettlements(params.sessionId),
       computeAndSaveAchievements(params.sessionId, params.groupId),
     ]);
+
+    // Notify all participants (fire-and-forget)
+    prisma.sessionParticipantResult.findMany({
+      where: { sessionId: params.sessionId },
+      select: { userId: true },
+    }).then((participants) => {
+      const participantIds = participants
+        .map((p) => p.userId)
+        .filter((id) => id !== session.user.id);
+      if (participantIds.length > 0) {
+        sendWebPushToUsers(participantIds, buildPayload("SESSION_CLOSED", {
+          groupId: params.groupId,
+          sessionId: params.sessionId,
+        })).catch(() => {});
+      }
+    }).catch(() => {});
 
     return NextResponse.json(updated);
   } catch (e: unknown) {
