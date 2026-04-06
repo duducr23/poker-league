@@ -28,12 +28,19 @@ interface Invitation {
   responses: Response[];
 }
 
+interface Member {
+  id: string;
+  name: string;
+  image?: string | null;
+}
+
 interface Props {
   invitation: Invitation;
   groupId: string;
   currentUserId: string;
   isAdmin: boolean;
   totalMembers: number;
+  allMembers?: Member[];
 }
 
 const STATUS_CONFIG = {
@@ -48,7 +55,7 @@ function toDatetimeLocal(dateStr: string) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export function InvitationCard({ invitation: initialInvitation, groupId, currentUserId, isAdmin, totalMembers }: Props) {
+export function InvitationCard({ invitation: initialInvitation, groupId, currentUserId, isAdmin, totalMembers, allMembers = [] }: Props) {
   const router = useRouter();
   const [invitation, setInvitation] = useState(initialInvitation);
   const [loading, setLoading] = useState<string | null>(null);
@@ -306,46 +313,88 @@ export function InvitationCard({ invitation: initialInvitation, groupId, current
           )}
         </div>
 
-        {/* Forecast */}
-        <div className="px-5 py-3">
-          <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">צפי השתתפות</p>
+        {/* Attendance */}
+        <div className="px-5 py-4 space-y-3">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">מי מגיע?</p>
 
           {/* Progress bar */}
-          <div className="flex h-2 rounded-full overflow-hidden gap-0.5 mb-3">
+          <div className="flex h-1.5 rounded-full overflow-hidden gap-0.5">
             {coming.length > 0 && (
-              <div className="h-full rounded-full" style={{ width: `${(coming.length / totalMembers) * 100}%`, background: "#10b981" }} />
+              <div className="h-full rounded-full transition-all" style={{ width: `${(coming.length / totalMembers) * 100}%`, background: "#10b981" }} />
             )}
             {maybe.length > 0 && (
-              <div className="h-full rounded-full" style={{ width: `${(maybe.length / totalMembers) * 100}%`, background: "#fbbf24" }} />
+              <div className="h-full rounded-full transition-all" style={{ width: `${(maybe.length / totalMembers) * 100}%`, background: "#fbbf24" }} />
             )}
             {notComing.length > 0 && (
-              <div className="h-full rounded-full" style={{ width: `${(notComing.length / totalMembers) * 100}%`, background: "#f87171" }} />
+              <div className="h-full rounded-full transition-all" style={{ width: `${(notComing.length / totalMembers) * 100}%`, background: "#f87171" }} />
             )}
             {notAnswered > 0 && (
               <div className="h-full rounded-full flex-1" style={{ background: "rgba(255,255,255,0.07)" }} />
             )}
           </div>
 
-          <div className="grid grid-cols-4 gap-2 text-center">
-            <div>
-              <p className="text-lg font-bold text-emerald-400">{coming.length}</p>
-              <p className="text-xs text-slate-600">מגיעים</p>
-              {coming.length > 0 && <p className="text-xs text-slate-700 truncate">{coming.map(r => r.user.name.split(" ")[0]).join(", ")}</p>}
+          {/* Attendance rows */}
+          {[
+            {
+              label: `מגיעים (${coming.length})`,
+              people: coming.map(r => r.user),
+              color: "#10b981",
+              bg: "rgba(16,185,129,0.08)",
+              border: "rgba(16,185,129,0.2)",
+              dot: "#10b981",
+            },
+            {
+              label: `אולי (${maybe.length})`,
+              people: maybe.map(r => r.user),
+              color: "#fbbf24",
+              bg: "rgba(251,191,36,0.08)",
+              border: "rgba(251,191,36,0.2)",
+              dot: "#fbbf24",
+            },
+            {
+              label: `לא מגיעים (${notComing.length})`,
+              people: notComing.map(r => r.user),
+              color: "#f87171",
+              bg: "rgba(248,113,113,0.08)",
+              border: "rgba(248,113,113,0.2)",
+              dot: "#f87171",
+            },
+            {
+              label: `לא ענו (${notAnswered})`,
+              people: allMembers.filter(m => !invitation.responses.find(r => r.userId === m.id)),
+              color: "#64748b",
+              bg: "rgba(100,116,139,0.06)",
+              border: "rgba(100,116,139,0.15)",
+              dot: "#475569",
+            },
+          ].map(({ label, people, color, bg, border, dot }) => (
+            <div
+              key={label}
+              className="rounded-lg px-3 py-2.5"
+              style={{ background: bg, border: `1px solid ${border}` }}
+            >
+              <p className="text-xs font-semibold mb-1.5" style={{ color }}>{label}</p>
+              {people.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {people.map(u => (
+                    <span
+                      key={u.id}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs"
+                      style={{ background: "rgba(255,255,255,0.05)", color: "#cbd5e1", border: "1px solid rgba(255,255,255,0.08)" }}
+                    >
+                      <span
+                        className="h-1.5 w-1.5 rounded-full shrink-0"
+                        style={{ background: dot }}
+                      />
+                      {u.name}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-600">—</p>
+              )}
             </div>
-            <div>
-              <p className="text-lg font-bold text-yellow-400">{maybe.length}</p>
-              <p className="text-xs text-slate-600">אולי</p>
-              {maybe.length > 0 && <p className="text-xs text-slate-700 truncate">{maybe.map(r => r.user.name.split(" ")[0]).join(", ")}</p>}
-            </div>
-            <div>
-              <p className="text-lg font-bold text-red-400">{notComing.length}</p>
-              <p className="text-xs text-slate-600">לא מגיעים</p>
-            </div>
-            <div>
-              <p className="text-lg font-bold text-slate-600">{notAnswered}</p>
-              <p className="text-xs text-slate-600">לא ענו</p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 

@@ -10,7 +10,7 @@ export default async function InvitationsPage({ params }: { params: { groupId: s
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/login");
 
-  const [member, invitations, memberCount] = await Promise.all([
+  const [member, invitations, groupMembers] = await Promise.all([
     prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId: params.groupId, userId: session.user.id } },
     }),
@@ -24,8 +24,14 @@ export default async function InvitationsPage({ params }: { params: { groupId: s
       },
       orderBy: { date: "asc" },
     }),
-    prisma.groupMember.count({ where: { groupId: params.groupId } }),
+    prisma.groupMember.findMany({
+      where: { groupId: params.groupId },
+      include: { user: { select: { id: true, name: true, image: true } } },
+    }),
   ]);
+
+  const memberCount = groupMembers.length;
+  const allMembers = groupMembers.map(m => m.user);
 
   if (!member) redirect("/dashboard");
 
@@ -63,6 +69,7 @@ export default async function InvitationsPage({ params }: { params: { groupId: s
               currentUserId={session.user.id}
               isAdmin={member.role === "ADMIN"}
               totalMembers={memberCount}
+              allMembers={allMembers}
             />
           ))}
         </div>
@@ -89,6 +96,7 @@ export default async function InvitationsPage({ params }: { params: { groupId: s
               currentUserId={session.user.id}
               isAdmin={member.role === "ADMIN"}
               totalMembers={memberCount}
+              allMembers={allMembers}
             />
           ))}
         </div>
