@@ -69,10 +69,10 @@ export function AdminUsersSection({ users: initialUsers, groups, superAdminEmail
                   {user.name.slice(0, 2)}
                 </div>
 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 overflow-hidden">
                   {/* Name + badges */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-semibold text-slate-100">{user.name}</p>
+                  <div className="flex items-center gap-2 flex-wrap min-w-0">
+                    <p className="text-sm font-semibold text-slate-100 break-words">{user.name}</p>
                     {isSuperAdmin && (
                       <span
                         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold"
@@ -92,9 +92,9 @@ export function AdminUsersSection({ users: initialUsers, groups, superAdminEmail
                   </div>
 
                   {/* Email */}
-                  <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
-                    <Mail className="h-3 w-3 shrink-0" />
-                    <span className="truncate">{user.email}</span>
+                  <p className="text-xs text-slate-400 mt-0.5 flex items-start gap-1">
+                    <Mail className="h-3 w-3 shrink-0 mt-0.5" />
+                    <span className="break-all">{user.email}</span>
                   </p>
 
                   {/* Stats */}
@@ -112,7 +112,10 @@ export function AdminUsersSection({ users: initialUsers, groups, superAdminEmail
 
               {/* Action buttons row */}
               {!isSuperAdmin ? (
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <TogglePermission userId={user.id} canCreateGroup={user.canCreateGroup} />
+                  </div>
                   <EditUserForm
                     userId={user.id}
                     initialName={user.name}
@@ -120,7 +123,6 @@ export function AdminUsersSection({ users: initialUsers, groups, superAdminEmail
                     groups={groups}
                     onDeleted={() => removeUser(user.id)}
                   />
-                  <TogglePermission userId={user.id} canCreateGroup={user.canCreateGroup} />
                 </div>
               ) : (
                 <div>
