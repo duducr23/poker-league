@@ -20,8 +20,8 @@ export function LeaderboardTable({ rows, groupId }: LeaderboardTableProps) {
             <th className="pb-3 text-right font-medium px-2">#</th>
             <th className="pb-3 text-right font-medium px-2">שחקן</th>
             <th className="pb-3 text-right font-medium px-2">משחקים</th>
-            <th className="pb-3 text-right font-medium px-2 hidden md:table-cell">רווחיים</th>
-            <th className="pb-3 text-right font-medium px-2 hidden md:table-cell">הפסד</th>
+            <th className="pb-3 text-right font-medium px-2">🏆 נצחונות</th>
+            <th className="pb-3 text-right font-medium px-2">💸 הפסדים</th>
             <th className="pb-3 text-right font-medium px-2">% הצלחה</th>
             <th className="pb-3 text-right font-medium px-2 hidden lg:table-cell">סה"כ השקעה</th>
             <th className="pb-3 text-right font-medium px-2">רווח / הפסד</th>
@@ -50,8 +50,8 @@ export function LeaderboardTable({ rows, groupId }: LeaderboardTableProps) {
                 </Link>
               </td>
               <td className="py-3 px-2 text-slate-400">{row.gamesPlayed}</td>
-              <td className="py-3 px-2 text-emerald-400 hidden md:table-cell">{row.profitableNights}</td>
-              <td className="py-3 px-2 text-red-400 hidden md:table-cell">{row.losingNights}</td>
+              <td className="py-3 px-2 font-semibold text-emerald-400">{row.profitableNights}</td>
+              <td className="py-3 px-2 font-semibold text-red-400">{row.losingNights}</td>
               <td className="py-3 px-2">
                 <Badge variant={row.successRate >= 50 ? "success" : "outline"}>
                   {formatPercent(row.successRate)}
