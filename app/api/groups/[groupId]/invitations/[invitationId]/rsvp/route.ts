@@ -74,7 +74,6 @@ export async function POST(
             userId: session.user.id,
             buyIn: 0,
             rebuy: 0,
-            addons: 0,
             cashOut: 0,
             totalInvested: 0,
             profitLoss: 0,
