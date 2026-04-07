@@ -44,6 +44,10 @@ export default async function GroupPage({ params }: { params: { groupId: string 
   const topMonth = monthlyLeaderboard.find((r) => r.gamesPlayed > 0);
   const mostActive = [...leaderboard].sort((a, b) => b.gamesPlayed - a.gamesPlayed)[0];
   const latestClosed = group.sessions.find((s) => s.status === "CLOSED");
+  // Rotation seed: changes every 2 days from last session date
+  const rotationSeed = latestClosed
+    ? Math.floor((Date.now() - new Date(latestClosed.date).getTime()) / (2 * 24 * 60 * 60 * 1000))
+    : 0;
   const biggestWinner = latestClosed
     ? latestClosed.results.reduce((best, r) => (!best || r.profitLoss > best.profitLoss ? r : best), null as (typeof latestClosed.results[0]) | null)
     : null;
@@ -185,7 +189,7 @@ export default async function GroupPage({ params }: { params: { groupId: string 
 
       {/* Top/Bottom roast */}
       {(top2.length > 0 || bottom2Filtered.length > 0) && (
-        <TopPlayersRoast top2={top2} bottom2={bottom2Filtered} groupId={params.groupId} />
+        <TopPlayersRoast top2={top2} bottom2={bottom2Filtered} groupId={params.groupId} rotationSeed={rotationSeed} />
       )}
 
       {/* Recent sessions */}

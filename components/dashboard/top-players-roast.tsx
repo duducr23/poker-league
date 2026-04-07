@@ -1,4 +1,3 @@
-"use client";
 import { type LeaderboardRow } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
@@ -8,148 +7,169 @@ interface Props {
   top2: LeaderboardRow[];
   bottom2: LeaderboardRow[];
   groupId: string;
+  rotationSeed: number;
 }
 
-// ── Winner roast lines (מקום 1-2) ────────────────────────────────────────────
+// ── Seeded deterministic picker ───────────────────────────────────────────────
 
-function winnerLines(row: LeaderboardRow, rank: number): string[] {
-  const lines: string[] = [];
-  const wr = row.successRate;
-  const n = row.gamesPlayed;
-  const streak = row.currentStreak;
-  const roi = row.roi;
-  const avg = row.avgProfitPerGame;
-  const pl = row.totalProfitLoss;
-  const losing = row.losingNights;
-  const winning = row.profitableNights;
-
-  if (rank === 1) {
-    if (wr >= 70)
-      lines.push(`מנצח ${wr.toFixed(0)}% מהזמן. לא מזל. לא מקרה. פשוט כולם שם שרצים בשבילו ולא יודעים.`);
-    else if (wr >= 55)
-      lines.push(`${wr.toFixed(0)}% ניצחונות ומוביל הדירוג — השאר עוד מחפשים מה הם עושים לא בסדר.`);
-    else
-      lines.push(`מוביל עם ${wr.toFixed(0)}% ניצחונות בלבד. לא צריך לנצח הרבה — רק לנצח כשזה נחשב.`);
-
-    if (roi > 80)
-      lines.push(`ROI של ${roi.toFixed(0)}%. הוא לא שחקן פוקר. הוא מנהל קרן גידור שמתחפש לאחד מכם.`);
-    else if (avg > 250)
-      lines.push(`ממוצע ${formatCurrency(avg)} לערב. רואה חשבון שלו ממש לא שואל שאלות.`);
-    else if (streak >= 3)
-      lines.push(`${streak} ניצחונות ברצף. שאר הקבוצה כבר שוקלת לשנות יום בשבוע.`);
-    else
-      lines.push(`${formatCurrency(pl)} בכיס. לא ברור אם הוא בא לשחק פוקר או לגבות שכר דירה.`);
-  } else {
-    // rank 2
-    lines.push(`מקום שני. מספיק טוב להתפאר. לא מספיק טוב לשתוק על זה בוואטסאפ.`);
-
-    if (pl > 0 && losing > winning * 0.6)
-      lines.push(`מפסיד יותר ערבים ממה שמנצח — ובכל זאת בפלוס. פוקר מוזר. הוא מוזר יותר.`);
-    else if (wr >= 60)
-      lines.push(`${wr.toFixed(0)}% ניצחונות ורק שני? אחד מהם ממש לא ישן טוב בלילה.`);
-    else if (streak >= 3)
-      lines.push(`${streak} ניצחונות ברצף — בא לקפוץ למקום הראשון. המוביל עוד לא ממש שם לב.`);
-    else
-      lines.push(`כמעט ראשון. כמעט. המילה הזאת חוזרת אליו כמו חרטה למחרת בבוקר.`);
-  }
-
-  return lines.slice(0, 2);
+function userHash(userId: string): number {
+  return userId.split("").reduce((acc, c, i) => acc + c.charCodeAt(0) * (i + 1), 0);
 }
 
-// ── Loser roast lines (מקום אחרון-לפני אחרון) ────────────────────────────────
-
-function loserLines(row: LeaderboardRow, reverseRank: number): string[] {
-  const lines: string[] = [];
-  const wr = row.successRate;
-  const n = row.gamesPlayed;
-  const streak = row.currentStreak;
-  const pl = row.totalProfitLoss;
-  const avg = row.avgProfitPerGame;
-  const losing = row.losingNights;
-
-  if (reverseRank === 1) {
-    // Dead last — most savage
-    if (wr <= 20)
-      lines.push(`${wr.toFixed(0)}% ניצחונות. זה לא גרוע — זה מדהים. לרדת כל כך נמוך צריך כישרון מיוחד.`);
-    else if (wr <= 35)
-      lines.push(`מנצח רק ${wr.toFixed(0)}% מהזמן. הכסא שלו ליד השולחן כבר מכיל את הכיתוב "תרומות בברכה".`);
-    else
-      lines.push(`${losing} הפסדים. הוא לא בא לשחק פוקר — הוא בא לממן את השאר. ואת זה הוא עושה מצוין.`);
-
-    if (pl < -1000)
-      lines.push(`${formatCurrency(Math.abs(pl))} בהפסד. יש מסעדות שהיית יכול לפתוח בכסף הזה. לא כאן — אבל איפשהו.`);
-    else if (pl < -500)
-      lines.push(`${formatCurrency(Math.abs(pl))} ירדו. המשפחה שלו חושבת שהוא "עושה נטוורקינג" בערבים.`);
-    else if (streak <= -3)
-      lines.push(`${Math.abs(streak)} הפסדים ברצף. בשלב הזה הוא כבר מגיע לפוקר כמו שהולכים לרופא שיניים — מוכן לכאב.`);
-    else
-      lines.push(`ממוצע ${formatCurrency(Math.abs(avg))} הפסד לערב. יש מנויי ספורט שעולים פחות ומביאים יותר שמחה.`);
-  } else {
-    // Second to last
-    if (wr <= 30)
-      lines.push(`${wr.toFixed(0)}% ניצחונות. לא הכי גרוע בקבוצה — אבל המרחק קטן בצורה מביכה.`);
-    else
-      lines.push(`לפני האחרון. מבחינתו זה הישג. הוא כבר שיתף את זה בסטטוס.`);
-
-    if (pl < -300)
-      lines.push(`${formatCurrency(Math.abs(pl))} הפסד. "אני לומד את המשחק" הוא אמר. ${n} ערבים אחרי — הוא עוד לומד.`);
-    else if (streak <= -2)
-      lines.push(`${Math.abs(streak)} הפסדים ברצף. הוא אומר "אני בירידה" — כולם מסכימים בשקט.`);
-    else
-      lines.push(`${n} ערבים ועדיין מגיע. האמונה שלו בעצמו גדולה מהכסף שנשאר בארנק.`);
-  }
-
-  return lines.slice(0, 2);
+function pick<T>(arr: T[], seed: number): T {
+  return arr[Math.abs(seed) % arr.length];
 }
 
-// ── Card configs ─────────────────────────────────────────────────────────────
+// ── LINE POOLS ────────────────────────────────────────────────────────────────
+
+type LineGen = (r: LeaderboardRow) => string;
+
+const RANK1_A: LineGen[] = [
+  (r) => `מנצח ${r.successRate.toFixed(0)}% מהזמן. הוא לא קורא קלפים — הוא קורא נשמות. כולם שם מתקפלים בלי להבין למה.`,
+  (r) => `${r.gamesPlayed} ערבים, ${r.totalProfitLoss > 0 ? "+" : ""}${formatCurrency(r.totalProfitLoss)}. מגיע לשולחן כמו גובה חוב — יודע בדיוק מה הוא בא לקחת ומאי.`,
+  (r) => `ROI של ${r.roi.toFixed(0)}%. ברנקרול מנג'מנט שאחרים לומדים ב-YouTube ומעדיפים לשכוח מיד אחרי.`,
+  (r) => `${r.successRate.toFixed(0)}% ניצחונות. בשלב זה כבר לא ברור אם השאר באו לשחק פוקר או לממן את קרן הפרישה שלו.`,
+  (r) => `אחרי ${r.gamesPlayed} ערבים הוא בפלוס של ${formatCurrency(r.totalProfitLoss)}. אם פוקר היה עבודה — הוא כבר היה מבקש רכב חברה ויום עבודה מהבית.`,
+  (r) => `ממוצע ${formatCurrency(r.avgProfitPerGame)} לערב. אנשי מכירות ותיקים שמעו על זה ובכו בשקט.`,
+  (r) => `הוא לא משחק all-in כשהוא צריך — הוא משחק all-in כשהוא *רוצה*. ההבדל הזה שווה ${formatCurrency(r.totalProfitLoss)}.`,
+  (r) => `${r.profitableNights} ניצחונות מתוך ${r.gamesPlayed} ערבים. לא מזל — מי שאומר "מזל" מנסה לישון בלילה.`,
+];
+
+const RANK1_B: LineGen[] = [
+  (_r) => `כשהוא אומר 'צ'ק' — כולם מרגישים מאוימים. כשהוא ריז — כולם מתחילים לחשב pot odds בפאניקה.`,
+  (_r) => `ריבר אחרי ריבר הוא שם. לא בגלל מזל — הוא קרא את הפלופ כשכולם עדיין חיו את הפרה-פלופ.`,
+  (_r) => `הבלאף שלו כל כך מדויק שגם הוא לא תמיד בטוח אם יש לו קלפים. וזה בדיוק הסוד.`,
+  (_r) => `שאר הקבוצה ב-tilt מהמחשבה שהוא שם. הוא? כבר ספר את הכסף בדרך הביתה.`,
+  (_r) => `ה-hand reading שלו כל כך מדויק שאנשים חושבים שהוא מוחל. הוא לא. הוא סתם רואה את הקלפים שלך.`,
+  (_r) => `ה-fish שבשולחן? הם חושבים שהוא friend. הוא חבר. עם ארנק שגדל בגלל החברות הזאת.`,
+  (_r) => `כשהוא פולד — כולם מקלים נשימה. זו בעיה. כי הוא פולד כשכולם לא זזים, וריז כשכולם רוצים להתקפל.`,
+  (_r) => `ה-cooler האחרון שהיכה אותו? הוא לא זוכר. כי הוא לא מחשיב bad beats — הוא מחשיב equity.`,
+];
+
+const RANK2_A: LineGen[] = [
+  (r) => `מקום שני. לא סקסי. אבל המוביל מסתכל לו מעל הכתף ולא מודה בזה אפילו לעצמו.`,
+  (r) => `${r.successRate.toFixed(0)}% ניצחונות ורק שני — מישהו שם מעליו גרם לו לשכוח מה זה showdown ריגשי.`,
+  (r) => `כמעט ראשון. 'כמעט' — המילה הנוראה ביותר בפוקר. ובחיים. וביחסים. וכאן.`,
+  (r) => `${formatCurrency(r.totalProfitLoss)} בפלוס ורק שני. הוא זוכר כל יד שאיבד בה לאחד שמעליו. כל אחת.`,
+  (r) => `קרוב מספיק כדי לריח את המקום הראשון. רחוק מספיק כדי לחיות עם זה.`,
+  (r) => `${r.gamesPlayed} ערבים ומקום שני. ה-upswing שלו מרשים. ה-timing — פחות.`,
+];
+
+const RANK2_B: LineGen[] = [
+  (_r) => `ה-3bet שלו נקי. ה-4bet שלו — פחות. בדיוק ההבדל בין מקום ראשון לשני.`,
+  (_r) => `לפני האחרון? לא. שני מלמעלה. יש הבדל עצום. הוא מסביר את זה לכל מי שמוכן לשמוע.`,
+  (_r) => `עוד ריבר אחד והוא ראשון. אמר גם בשבוע שעבר. ובשבוע שלפניו.`,
+  (_r) => `כשהוא שמה bet בריבר — הראשון מתחיל לחשוב. זה כבר הישג.`,
+  (_r) => `ה-range שלו טוב. ה-range של מי שמעליו — מעט יותר טוב. ובפוקר "מעט" שווה הכל.`,
+  (_r) => `שני זה לא מקום להתבייש בו. שני זה מקום לשנוא בשקט.`,
+];
+
+const LAST_A: LineGen[] = [
+  (r) => `${r.successRate.toFixed(0)}% ניצחונות. זה אפילו לא variance — זה הצהרת כוונות.`,
+  (r) => `הוא all-in על כל רגש, כל ניחוש, כל bad beat שקיבל ב-3 השנים האחרונות. הארנק שלו הבין לפניו.`,
+  (r) => `${r.losingNights} הפסדים מתוך ${r.gamesPlayed} ערבים. הוא לא fish — הוא whale. רק בכיוון הלא נכון.`,
+  (r) => `כל ריבר שורף אותו. כל טורן מאכזב. כל פלופ נראה מבטיח ומסתיים בלעלע. הדילר כבר מרחם בשקט.`,
+  (r) => `${formatCurrency(Math.abs(r.totalProfitLoss))} ירדו לתחתית הפוט. לפחות הוא מממן חוויות בלתי נשכחות לאחרים. זה גם סוג של נתינה.`,
+  (r) => `הוא באמת מנסה. זה הכי מצמרר בכל הסיפור הזה.`,
+  (r) => `ה-tilt שלו מגיע בדקה 3 ונשאר עד הבוקר. המשחק ממשיך — הוא פשוט כבר לא בפנים.`,
+  (r) => `${r.gamesPlayed} ערבים ועדיין מגיע. אין תיאור אחר לזה מלבד אומץ. או הכחשה. בעיקר הכחשה.`,
+  (r) => `ממוצע הפסד של ${formatCurrency(Math.abs(r.avgProfitPerGame))} לערב. ביטוח לאומי אפילו לא מכיר את הקטגוריה הזאת.`,
+];
+
+const LAST_B: LineGen[] = [
+  (_r) => `אחד היה צריך להגיד לו ש-'pot committed' זו לא אסטרטגיה — זו שלב של אבל.`,
+  (_r) => `הוא תמיד בטוח שיש לו ה-best hand. הקלפים לא תמיד חולקים את ההערכה העצמית הזאת.`,
+  (_r) => `'זה היה bad beat' — משפט שחוזר אצלו יותר מ'בוקר טוב'. ב-מ-ש-פ-ט.`,
+  (_r) => `ה-calling station שלו ידוע. הקופה כבר מכירה את הפנים שלו בצאת הכסף.`,
+  (_r) => `הוא לא מבין למה כולם מבליפים נגדו. הם לא. הם פשוט בטוחים שיש להם את ה-hand הטוב יותר. ובצדק.`,
+  (_r) => `ה-shove שלו בטורן תמיד מרגיש נכון לו. בדיעבד — פחות. בהרבה פחות.`,
+  (_r) => `variance הוא תירוץ מצוין. גם לו. גם ל-20 הערבים הקודמים. גם לאחרי זה.`,
+  (_r) => `אנשים שמחים שהוא בשולחן. הם לא מגלים לו למה.`,
+];
+
+const SECOND_LAST_A: LineGen[] = [
+  (r) => `לפני האחרון. מזל מסוים — הוא יודע בדיוק מי כן מתחתיו ומחייך אליו בחמימות אמיתית.`,
+  (r) => `${r.successRate.toFixed(0)}% ניצחונות. לא הכי גרוע בקבוצה. רק קרוב מספיק כדי שמישהו יציין את זה.`,
+  (r) => `${r.gamesPlayed} ערבים ועדיין. האופטימיות שלו מפחידה יותר מהסטטיסטיקה.`,
+  (r) => `${formatCurrency(Math.abs(r.totalProfitLoss))} הפסד. הוא קורא לזה 'שכר לימוד'. ${r.gamesPlayed} ערבים אחרי — הוא עדיין לומד.`,
+  (r) => `לא אחרון. זה המשפט היחיד שהוא מצפה לשמוע כשהערב נגמר.`,
+  (r) => `מקום לפני האחרון לא מגיע במקרה. זה דורש קביעות, עיקשות, ועיוורון סלקטיבי מרשים.`,
+];
+
+const SECOND_LAST_B: LineGen[] = [
+  (_r) => `'לפחות אני לא אחרון' — המנטרה. חוזרת יותר מ-check-fold בביג בליינד.`,
+  (_r) => `ה-3bet שלו נגד מי שמעליו תמיד מאוחר רבע שנייה. ה-fold נגד מי שמתחתיו — תמיד מוקדם מדי.`,
+  (_r) => `הוא יודע שהוא צריך להשתפר. הוא אפילו יודע איפה. הוא פשוט ממשיך לבחור באותם ה-spots הלא נכונים.`,
+  (_r) => `הבלאף הטוב ביותר שלו? להגיד לעצמו שהוא 'בדרך לעלות בדירוג'.`,
+  (_r) => `כשהוא מדבר על 'range advantage' — כולם מנדנדים ראש. אף אחד לא אומר לו שה-range שלו פתוח מדי.`,
+  (_r) => `אחרי שבוע — הוא שוכח את ההפסד. אחרי חודש — הוא זוכר רק את הניצחונות. זה כישרון. מסוג מסוים.`,
+];
+
+// ── Card visual configs ───────────────────────────────────────────────────────
 
 const TOP_CFG = [
   {
-    medal: "🥇",
-    label: "מוביל הקבוצה",
+    medal: "🥇", label: "מוביל הקבוצה",
     gradient: "linear-gradient(135deg, rgba(212,160,23,0.15), rgba(245,200,66,0.06))",
-    border: "rgba(212,160,23,0.4)",
-    accent: "#f5c842",
+    border: "rgba(212,160,23,0.4)", accent: "#f5c842",
     glow: "0 0 30px rgba(212,160,23,0.12)",
   },
   {
-    medal: "🥈",
-    label: "סגן האלוף",
+    medal: "🥈", label: "סגן האלוף",
     gradient: "linear-gradient(135deg, rgba(148,163,184,0.12), rgba(100,116,139,0.05))",
-    border: "rgba(148,163,184,0.3)",
-    accent: "#94a3b8",
+    border: "rgba(148,163,184,0.3)", accent: "#94a3b8",
     glow: "0 0 20px rgba(148,163,184,0.08)",
   },
 ] as const;
 
 const BOTTOM_CFG = [
   {
-    medal: "💀",
-    label: "אחרון הדירוג",
-    gradient: "linear-gradient(135deg, rgba(239,68,68,0.12), rgba(185,28,28,0.06))",
-    border: "rgba(239,68,68,0.35)",
-    accent: "#f87171",
+    medal: "💀", label: "אחרון הדירוג",
+    gradient: "linear-gradient(135deg, rgba(239,68,68,0.13), rgba(185,28,28,0.06))",
+    border: "rgba(239,68,68,0.4)", accent: "#f87171",
     glow: "0 0 25px rgba(239,68,68,0.1)",
   },
   {
-    medal: "🤡",
-    label: "לפני האחרון",
-    gradient: "linear-gradient(135deg, rgba(251,146,60,0.1), rgba(194,65,12,0.05))",
-    border: "rgba(251,146,60,0.3)",
-    accent: "#fb923c",
+    medal: "🤡", label: "לפני האחרון",
+    gradient: "linear-gradient(135deg, rgba(251,146,60,0.11), rgba(194,65,12,0.05))",
+    border: "rgba(251,146,60,0.3)", accent: "#fb923c",
     glow: "0 0 20px rgba(251,146,60,0.08)",
   },
 ] as const;
 
+// ── Line selector ─────────────────────────────────────────────────────────────
+
+function getLines(
+  row: LeaderboardRow,
+  poolA: LineGen[],
+  poolB: LineGen[],
+  seed: number
+): [string, string] {
+  const h = userHash(row.userId);
+  const line1 = pick(poolA, h + seed * 31)(row);
+  const line2 = pick(poolB, h + seed * 17 + 7)(row);
+  return [line1, line2];
+}
+
+function winnerLines(row: LeaderboardRow, rank: number, seed: number): [string, string] {
+  return rank === 1
+    ? getLines(row, RANK1_A, RANK1_B, seed)
+    : getLines(row, RANK2_A, RANK2_B, seed);
+}
+
+function loserLines(row: LeaderboardRow, reverseRank: number, seed: number): [string, string] {
+  return reverseRank === 1
+    ? getLines(row, LAST_A, LAST_B, seed)
+    : getLines(row, SECOND_LAST_A, SECOND_LAST_B, seed);
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export function TopPlayersRoast({ top2, bottom2, groupId }: Props) {
+export function TopPlayersRoast({ top2, bottom2, groupId, rotationSeed }: Props) {
   if (top2.length === 0 && bottom2.length === 0) return null;
 
   return (
     <div className="space-y-4">
-      {/* Section header */}
       <div className="flex items-center gap-3">
         <span className="text-xl">🎙️</span>
         <div>
@@ -158,24 +178,22 @@ export function TopPlayersRoast({ top2, bottom2, groupId }: Props) {
         </div>
       </div>
 
-      {/* Winners */}
       {top2.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {top2.map((row, i) => {
             const cfg = TOP_CFG[i];
-            const lines = winnerLines(row, i + 1);
-            return <RoastCard key={row.userId} row={row} cfg={cfg} lines={lines} groupId={groupId} />;
+            const [l1, l2] = winnerLines(row, i + 1, rotationSeed);
+            return <RoastCard key={row.userId} row={row} cfg={cfg} lines={[l1, l2]} groupId={groupId} />;
           })}
         </div>
       )}
 
-      {/* Losers */}
       {bottom2.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {bottom2.map((row, i) => {
             const cfg = BOTTOM_CFG[i];
-            const lines = loserLines(row, i + 1);
-            return <RoastCard key={row.userId} row={row} cfg={cfg} lines={lines} groupId={groupId} />;
+            const [l1, l2] = loserLines(row, i + 1, rotationSeed);
+            return <RoastCard key={row.userId} row={row} cfg={cfg} lines={[l1, l2]} groupId={groupId} />;
           })}
         </div>
       )}
@@ -186,14 +204,11 @@ export function TopPlayersRoast({ top2, bottom2, groupId }: Props) {
 // ── Shared card ───────────────────────────────────────────────────────────────
 
 function RoastCard({
-  row,
-  cfg,
-  lines,
-  groupId,
+  row, cfg, lines, groupId,
 }: {
   row: LeaderboardRow;
   cfg: { medal: string; label: string; gradient: string; border: string; accent: string; glow: string };
-  lines: string[];
+  lines: [string, string];
   groupId: string;
 }) {
   return (
@@ -202,7 +217,6 @@ function RoastCard({
       className="rounded-2xl p-5 space-y-4 block transition-transform hover:scale-[1.01]"
       style={{ background: cfg.gradient, border: `1px solid ${cfg.border}`, boxShadow: cfg.glow }}
     >
-      {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-2xl">{cfg.medal}</span>
@@ -221,7 +235,6 @@ function RoastCard({
         </div>
       </div>
 
-      {/* Mini stats */}
       <div className="flex gap-2 flex-wrap text-xs">
         <span className="px-2 py-1 rounded-lg font-semibold" style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}>
           ✅ {row.profitableNights}
@@ -246,14 +259,13 @@ function RoastCard({
         )}
       </div>
 
-      {/* Roast lines */}
       <div className="rounded-xl px-3 py-3 space-y-2" style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.05)" }}>
-        {lines.map((line, j) => (
-          <p key={j} className="text-xs text-slate-400 leading-relaxed">
-            <span className="text-slate-600 mr-1">{j === 0 ? "💬" : "💭"}</span>
-            {line}
-          </p>
-        ))}
+        <p className="text-xs text-slate-300 leading-relaxed">
+          <span className="text-slate-500 mr-1">💬</span>{lines[0]}
+        </p>
+        <p className="text-xs text-slate-500 leading-relaxed">
+          <span className="text-slate-600 mr-1">💭</span>{lines[1]}
+        </p>
       </div>
     </Link>
   );
