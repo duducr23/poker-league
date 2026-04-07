@@ -12,6 +12,7 @@ import { getLeaderboard } from "@/lib/leaderboard";
 import { isGroupAdmin } from "@/lib/permissions";
 import { formatCurrency, formatDate, getStatusLabel, getStatusColor } from "@/lib/utils";
 import { Trophy, CalendarDays, Plus, Users, TrendingUp, Medal, ArrowLeft, Settings } from "lucide-react";
+import { TopPlayersRoast } from "@/components/dashboard/top-players-roast";
 
 export default async function GroupPage({ params }: { params: { groupId: string } }) {
   const session = await getServerSession(authOptions);
@@ -172,6 +173,9 @@ export default async function GroupPage({ params }: { params: { groupId: string 
           </Card>
         </div>
       </div>
+
+      {/* Top 3 roast */}
+      {top3.length > 0 && <TopPlayersRoast top3={top3} groupId={params.groupId} />}
 
       {/* Recent sessions */}
       <Card>
