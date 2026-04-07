@@ -84,7 +84,12 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
     onRefresh();
   }
 
-  async function removeParticipant(userId: string) {
+  async function removeParticipant(userId: string, isSubmitted: boolean) {
+    const name = results.find((r) => r.userId === userId)?.userName ?? "השחקן";
+    const msg = isSubmitted
+      ? `${name} כבר הגיש תוצאות — להסיר אותו בכל זאת? הנתונים שלו יימחקו.`
+      : `להסיר את ${name} מהסשן?`;
+    if (!confirm(msg)) return;
     const res = await fetch(`/api/groups/${groupId}/sessions/${sessionId}/participants`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -221,14 +226,14 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
                           : <><Snowflake className="h-3 w-3" />הקפא</>
                         }
                       </Button>
-                      {/* Remove (only if not submitted) */}
-                      {isOpen && !r.isSubmitted && (
+                      {/* Remove participant */}
+                      {isOpen && (
                         <Button
                           size="sm"
                           variant="ghost"
                           className="h-7 w-7 p-0 text-red-400 hover:text-red-300"
-                          onClick={() => removeParticipant(r.userId)}
-                          title="הסר מהסשן"
+                          onClick={() => removeParticipant(r.userId, r.isSubmitted)}
+                          title={r.isSubmitted ? "הסר שחקן (הגיש תוצאות)" : "הסר מהסשן"}
                         >
                           <X className="h-3.5 w-3.5" />
                         </Button>

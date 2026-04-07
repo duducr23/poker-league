@@ -63,8 +63,6 @@ export async function DELETE(
       where: { sessionId_userId: { sessionId: params.sessionId, userId } },
     });
     if (!existing) return NextResponse.json({ error: "משתתף לא נמצא" }, { status: 404 });
-    if (existing.isSubmitted)
-      return NextResponse.json({ error: "לא ניתן להסיר שחקן שכבר הגיש תוצאה" }, { status: 400 });
 
     await prisma.sessionParticipantResult.delete({
       where: { sessionId_userId: { sessionId: params.sessionId, userId } },
