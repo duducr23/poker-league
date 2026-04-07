@@ -4,6 +4,8 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   cacheOnFrontEndNav: false,
   aggressiveFrontEndNavCaching: false,
   reloadOnOnline: true,
+  skipWaiting: true,
+  clientsClaim: true,
   disable: process.env.NODE_ENV === "development",
 });
 
