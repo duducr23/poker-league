@@ -2,10 +2,20 @@ import { prisma } from "./db";
 import { Period, LeaderboardRow } from "@/types";
 import { getPeriodDateRange, calculateROI, calculateCurrentStreak } from "./utils";
 
-export const LEADERBOARD_MIN_GAMES = 2;
+export const LEADERBOARD_MIN_GAMES = 1; // kept for leaderboard table compatibility
+export const LEADERBOARD_MIN_ATTENDANCE_PCT = 0.25; // 25% of sessions
 
 export async function getLeaderboard(groupId: string, period: Period): Promise<LeaderboardRow[]> {
   const range = getPeriodDateRange(period);
+
+  // Count total closed sessions in this group (for attendance %)
+  const totalSessions = await prisma.session.count({
+    where: {
+      groupId,
+      status: "CLOSED",
+      ...(range ? { date: { gte: range.from, lte: range.to } } : {}),
+    },
+  });
 
   const members = await prisma.groupMember.findMany({
     where: { groupId, isFrozen: false }, // exclude frozen players
@@ -31,8 +41,9 @@ export async function getLeaderboard(groupId: string, period: Period): Promise<L
 
     const gamesPlayed = results.length;
 
-    // Skip players below minimum games threshold
-    if (gamesPlayed < LEADERBOARD_MIN_GAMES) continue;
+    // Skip players below 25% attendance threshold (min 1 game)
+    if (gamesPlayed === 0) continue;
+    if (totalSessions > 0 && gamesPlayed / totalSessions < LEADERBOARD_MIN_ATTENDANCE_PCT) continue;
 
     const profitableNights = results.filter((r) => r.profitLoss > 0).length;
     const losingNights = results.filter((r) => r.profitLoss < 0).length;

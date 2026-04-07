@@ -31,7 +31,16 @@ export default async function GroupPage({ params }: { params: { groupId: string 
   const leaderboard = await getLeaderboard(params.groupId, "all");
   const monthlyLeaderboard = await getLeaderboard(params.groupId, "month");
 
-  const top3 = leaderboard.slice(0, 3).filter((r) => r.gamesPlayed > 0);
+  const qualified = leaderboard.filter((r) => r.gamesPlayed > 0);
+  const top2 = qualified.slice(0, 2);
+  const bottom2 = qualified.length >= 4
+    ? qualified.slice(-2).reverse()
+    : qualified.length === 3
+    ? [qualified[2]]
+    : [];
+  // avoid overlap when list is very short
+  const bottom2Filtered = bottom2.filter((r) => !top2.find((t) => t.userId === r.userId));
+  const top3 = top2; // keep for existing stat cards below
   const topMonth = monthlyLeaderboard.find((r) => r.gamesPlayed > 0);
   const mostActive = [...leaderboard].sort((a, b) => b.gamesPlayed - a.gamesPlayed)[0];
   const latestClosed = group.sessions.find((s) => s.status === "CLOSED");
@@ -174,8 +183,10 @@ export default async function GroupPage({ params }: { params: { groupId: string 
         </div>
       </div>
 
-      {/* Top 3 roast */}
-      {top3.length > 0 && <TopPlayersRoast top3={top3} groupId={params.groupId} />}
+      {/* Top/Bottom roast */}
+      {(top2.length > 0 || bottom2Filtered.length > 0) && (
+        <TopPlayersRoast top2={top2} bottom2={bottom2Filtered} groupId={params.groupId} />
+      )}
 
       {/* Recent sessions */}
       <Card>
