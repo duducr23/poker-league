@@ -281,6 +281,7 @@ export default function SessionDetailPage() {
                   sessionId={params.sessionId}
                   currentUserId={authSession.user.id}
                   isOpen={isOpen}
+                  isAdmin={isAdmin}
                   participants={data.results.map((r: any) => ({
                     userId: r.userId,
                     name: r.userName,

@@ -266,7 +266,7 @@ export function NotificationSettings() {
                 [
                   {
                     key: "notifFinancial" as keyof Prefs,
-                    label: "בקשות buy-in ו-rebuy",
+                    label: "בקשות מערכת החישגוזים",
                     desc: "בקשות קנייה ואישורים",
                   },
                   {

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
 import { formatCurrency } from "@/lib/utils";
-import { Loader2, CheckCircle2, XCircle, Clock, TrendingUp, TrendingDown, Minus, RefreshCw } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Clock, TrendingUp, TrendingDown, Minus, RefreshCw, Pencil, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface UserRef {
@@ -51,6 +51,7 @@ interface Props {
   sessionId: string;
   currentUserId: string;
   isOpen: boolean;
+  isAdmin?: boolean;
   participants: Array<{ userId: string; name: string; image?: string | null }>;
 }
 
@@ -73,7 +74,7 @@ function statusBadge(status: string) {
 }
 
 function typeLabel(type: string) {
-  return type === "INITIAL_BUYIN" ? "בקשת Buy-in" : "בקשת Rebuy";
+  return type === "INITIAL_BUYIN" ? "בקשת קנייה" : "בקשת רה-ביי";
 }
 
 function computeSummaries(
@@ -110,6 +111,7 @@ export function FinancialRequestsPanel({
   sessionId,
   currentUserId,
   isOpen,
+  isAdmin = false,
   participants,
 }: Props) {
   const [requests, setRequests] = useState<FinancialRequest[]>([]);
@@ -126,6 +128,13 @@ export function FinancialRequestsPanel({
   // Cash-out form state
   const [cashOutInput, setCashOutInput] = useState("");
   const [savingCashOut, setSavingCashOut] = useState(false);
+
+  // Admin edit state
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [adminEditBuyIn, setAdminEditBuyIn] = useState("");
+  const [adminEditRebuy, setAdminEditRebuy] = useState("");
+  const [adminEditCashOut, setAdminEditCashOut] = useState("");
+  const [adminSaving, setAdminSaving] = useState(false);
 
   const fetchRequests = useCallback(async () => {
     try {
@@ -228,7 +237,7 @@ export function FinancialRequestsPanel({
       toast({ title: "שגיאה", description: json.error, variant: "destructive" });
       return;
     }
-    toast({ title: requestType === "INITIAL_BUYIN" ? "בקשת Buy-in נשלחה" : "בקשת Rebuy נשלחה" });
+    toast({ title: requestType === "INITIAL_BUYIN" ? "בקשת קנייה נשלחה" : "בקשת רה-ביי נשלחה" });
     setRequestAmount("");
     setShowRequestForm(false);
     fetchRequests();
@@ -255,7 +264,40 @@ export function FinancialRequestsPanel({
       toast({ title: "שגיאה", description: json.error, variant: "destructive" });
       return;
     }
-    toast({ title: "Cash-out נשמר" });
+    toast({ title: "יציאה נשמרה" });
+    fetchCashOuts();
+  }
+
+  function openAdminEdit(s: ParticipantSummary) {
+    setEditingUserId(s.userId);
+    setAdminEditBuyIn(s.approvedBuyIn > 0 ? String(s.approvedBuyIn) : "");
+    setAdminEditRebuy(s.approvedRebuys > 0 ? String(s.approvedRebuys) : "");
+    setAdminEditCashOut(s.finalCashOut > 0 ? String(s.finalCashOut) : "");
+  }
+
+  async function handleAdminSave(userId: string) {
+    const buyIn = parseFloat(adminEditBuyIn) || 0;
+    const rebuyTotal = parseFloat(adminEditRebuy) || 0;
+    const cashOut = parseFloat(adminEditCashOut) || 0;
+
+    setAdminSaving(true);
+    const res = await fetch(
+      `/api/groups/${groupId}/sessions/${sessionId}/participants/${userId}/admin-set`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ buyIn, rebuyTotal, cashOut }),
+      }
+    );
+    const json = await res.json();
+    setAdminSaving(false);
+    if (!res.ok) {
+      toast({ title: "שגיאה", description: json.error, variant: "destructive" });
+      return;
+    }
+    toast({ title: "✅ עודכן בהצלחה" });
+    setEditingUserId(null);
+    fetchRequests();
     fetchCashOuts();
   }
 
@@ -286,7 +328,7 @@ export function FinancialRequestsPanel({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold" style={{ color: "#d4a017" }}>
-          מערכת Buy-in ו-Rebuy
+          מערכת החישגוזים
         </h2>
         <Button
           size="sm"
@@ -331,7 +373,7 @@ export function FinancialRequestsPanel({
                   )}
                   {myPendingBuyIn && (
                     <span className="text-xs text-amber-400 flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" />בקשת Buy-in ממתינה לאישור
+                      <Clock className="h-3.5 w-3.5" />בקשת קנייה ממתינה לאישור
                     </span>
                   )}
                 </div>
@@ -339,7 +381,7 @@ export function FinancialRequestsPanel({
                 <div className="space-y-2 rounded-lg p-3" style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(212,160,23,0.2)" }}>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-sm font-medium text-slate-200">
-                      {requestType === "INITIAL_BUYIN" ? "בקשת Buy-in" : "בקשת Rebuy"}
+                      {requestType === "INITIAL_BUYIN" ? "בקשת קנייה" : "בקשת רה-ביי"}
                     </span>
                     {myApprovedBuyIn && (
                       <div className="flex gap-1">
@@ -347,11 +389,11 @@ export function FinancialRequestsPanel({
                           className={cn("text-xs px-2 py-0.5 rounded", requestType === "INITIAL_BUYIN" ? "bg-amber-500/20 text-amber-300" : "text-slate-500")}
                           onClick={() => setRequestType("INITIAL_BUYIN")}
                           disabled={!!myApprovedBuyIn}
-                        >Buy-in</button>
+                        >קנייה</button>
                         <button
                           className={cn("text-xs px-2 py-0.5 rounded", requestType === "REBUY" ? "bg-amber-500/20 text-amber-300" : "text-slate-500")}
                           onClick={() => setRequestType("REBUY")}
-                        >Rebuy</button>
+                        >רה-ביי</button>
                       </div>
                     )}
                   </div>
@@ -388,7 +430,7 @@ export function FinancialRequestsPanel({
 
             {/* Final Cash-Out */}
             <div className="space-y-2 pt-1 border-t border-white/5">
-              <Label className="text-xs text-slate-400">Cash-Out סופי (₪)</Label>
+              <Label className="text-xs text-slate-400">יציאה סיום ערב (₪)</Label>
               <div className="flex gap-2 items-end">
                 <Input
                   type="number"
@@ -483,46 +525,124 @@ export function FinancialRequestsPanel({
               ? <TrendingDown className="h-4 w-4" style={{ color: plColor }} />
               : <Minus className="h-4 w-4" style={{ color: plColor }} />;
 
+            const isEditing = editingUserId === s.userId;
+
             return (
               <div
                 key={s.userId}
                 className="rounded-lg p-3 space-y-2"
                 style={{
                   background: isMe ? "rgba(212,160,23,0.06)" : "rgba(255,255,255,0.03)",
-                  border: `1px solid ${isMe ? "rgba(212,160,23,0.25)" : "rgba(255,255,255,0.07)"}`,
+                  border: `1px solid ${isEditing ? "rgba(212,160,23,0.5)" : isMe ? "rgba(212,160,23,0.25)" : "rgba(255,255,255,0.07)"}`,
                 }}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-slate-100">
                     {s.name}{isMe && " (אתה)"}
                   </span>
-                  {s.pendingCount > 0 && (
-                    <Badge className="text-xs" style={{ background: "rgba(251,191,36,0.15)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.25)" }}>
-                      {s.pendingCount} ממתין
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {s.pendingCount > 0 && !isEditing && (
+                      <Badge className="text-xs" style={{ background: "rgba(251,191,36,0.15)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.25)" }}>
+                        {s.pendingCount} ממתין
+                      </Badge>
+                    )}
+                    {isAdmin && isOpen && (
+                      isEditing ? (
+                        <button
+                          className="text-slate-400 hover:text-slate-200 p-0.5"
+                          onClick={() => setEditingUserId(null)}
+                          title="ביטול"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      ) : (
+                        <button
+                          className="text-slate-500 hover:text-amber-400 p-0.5 transition-colors"
+                          onClick={() => openAdminEdit(s)}
+                          title="עריכת נתונים"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                      )
+                    )}
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Buy-in מאושר</span>
-                    <span className="text-slate-300">{formatCurrency(s.approvedBuyIn)}</span>
+
+                {/* Admin edit form */}
+                {isAdmin && isOpen && isEditing ? (
+                  <div className="space-y-2 pt-1">
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-slate-400">קנייה (₪)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={adminEditBuyIn}
+                          onChange={(e) => setAdminEditBuyIn(e.target.value)}
+                          className="h-7 text-xs px-2"
+                          placeholder="0"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-slate-400">רה-ביי (₪)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={adminEditRebuy}
+                          onChange={(e) => setAdminEditRebuy(e.target.value)}
+                          className="h-7 text-xs px-2"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-slate-400">יציאה (₪)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={adminEditCashOut}
+                          onChange={(e) => setAdminEditCashOut(e.target.value)}
+                          className="h-7 text-xs px-2"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="w-full h-7 text-xs"
+                      style={{ background: "#d4a017", color: "#0c0c18" }}
+                      onClick={() => handleAdminSave(s.userId)}
+                      disabled={adminSaving}
+                    >
+                      {adminSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "שמור שינויים"}
+                    </Button>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Rebuy מאושר</span>
-                    <span className="text-slate-300">{formatCurrency(s.approvedRebuys)}</span>
+                ) : (
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">קנייה מאושרת</span>
+                      <span className="text-slate-300">{formatCurrency(s.approvedBuyIn)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">רה-ביי מאושר</span>
+                      <span className="text-slate-300">{formatCurrency(s.approvedRebuys)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">יציאה סופית</span>
+                      <span className="text-slate-300">{formatCurrency(s.finalCashOut)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500">רווח/הפסד</span>
+                      <span className="flex items-center gap-1 font-semibold" style={{ color: plColor }}>
+                        {plIcon}
+                        {pl > 0 ? "+" : ""}{formatCurrency(pl)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Cash-Out סופי</span>
-                    <span className="text-slate-300">{formatCurrency(s.finalCashOut)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-slate-500">רווח/הפסד</span>
-                    <span className="flex items-center gap-1 font-semibold" style={{ color: plColor }}>
-                      {plIcon}
-                      {pl > 0 ? "+" : ""}{formatCurrency(pl)}
-                    </span>
-                  </div>
-                </div>
+                )}
               </div>
             );
           })}
