@@ -3,8 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
-import { sendWebPushToUsers } from "@/lib/push";
-import { buildPayload } from "@/lib/push-payloads";
 
 const schema = z.object({
   title: z.string().min(1),
@@ -80,22 +78,6 @@ export async function POST(req: Request, { params }: { params: { groupId: string
 
     return inv;
   });
-
-  // Notify all group members (fire-and-forget)
-  prisma.groupMember.findMany({
-    where: { groupId: params.groupId },
-    select: { userId: true },
-  }).then((members) => {
-    const memberIds = members.map((m) => m.userId).filter((id) => id !== session.user.id);
-    if (memberIds.length > 0) {
-      sendWebPushToUsers(memberIds, buildPayload("INVITATION_CREATED", {
-        creatorName: invitation.createdBy.name,
-        title: body.data.title,
-        groupId: params.groupId,
-        invitationId: invitation.id,
-      })).catch(() => {});
-    }
-  }).catch(() => {});
 
   return NextResponse.json(invitation);
 }
