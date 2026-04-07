@@ -28,7 +28,7 @@ export async function GET(req: Request, { params }: { params: { groupId: string 
       orderBy: { session: { date: "desc" } },
     });
 
-    const headers = ["תאריך", "מיקום", "שם", "קנייה", "ריבאי", "אדאון", "יציאה", "סה\"כ השקעה", "רווח/הפסד"];
+    const headers = ["תאריך", "מיקום", "שם", "קנייה", "ריבאי", "יציאה", "סה\"כ השקעה", "רווח/הפסד"];
     const lines = [
       headers.join(","),
       ...results.map((r) =>
@@ -38,7 +38,6 @@ export async function GET(req: Request, { params }: { params: { groupId: string 
           `"${r.user.name}"`,
           r.buyIn,
           r.rebuy,
-          r.addons,
           r.cashOut,
           r.totalInvested,
           r.profitLoss,

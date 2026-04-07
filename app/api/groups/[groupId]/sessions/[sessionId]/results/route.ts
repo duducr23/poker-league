@@ -9,7 +9,6 @@ const schema = z.object({
   userId: z.string().optional(), // admin can pass a userId to edit someone else
   buyIn: z.number().min(0),
   rebuy: z.number().min(0),
-  addons: z.number().min(0),
   cashOut: z.number().min(0),
 });
 
@@ -42,7 +41,7 @@ export async function PUT(
       return NextResponse.json({ error: "אין הרשאה לערוך תוצאה של משתמש אחר" }, { status: 403 });
     }
 
-    const totalInvested = body.buyIn + body.rebuy + body.addons;
+    const totalInvested = body.buyIn + body.rebuy;
     const profitLoss = body.cashOut - totalInvested;
 
     const updated = await prisma.sessionParticipantResult.update({
@@ -50,7 +49,6 @@ export async function PUT(
       data: {
         buyIn: body.buyIn,
         rebuy: body.rebuy,
-        addons: body.addons,
         cashOut: body.cashOut,
         totalInvested,
         profitLoss,

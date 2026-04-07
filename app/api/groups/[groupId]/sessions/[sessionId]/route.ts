@@ -23,7 +23,7 @@ export async function GET(_req: Request, { params }: { params: { groupId: string
       notes: s.notes, status: s.status, isAdmin: admin,
       results: s.results.map((r) => ({
         userId: r.userId, userName: r.user.name, userImage: r.user.image,
-        buyIn: r.buyIn, rebuy: r.rebuy, addons: r.addons, cashOut: r.cashOut,
+        buyIn: r.buyIn, rebuy: r.rebuy, cashOut: r.cashOut,
         totalInvested: r.totalInvested, profitLoss: r.profitLoss,
         finalCashOut: r.finalCashOut, maxDrawdown: r.maxDrawdown,
         isSubmitted: r.isSubmitted, submittedAt: r.submittedAt,

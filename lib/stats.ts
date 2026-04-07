@@ -42,7 +42,6 @@ export async function getPlayerStats(groupId: string, playerId: string, period: 
     location: r.session.location,
     buyIn: r.buyIn,
     rebuy: r.rebuy,
-    addons: r.addons,
     cashOut: r.cashOut,
     totalInvested: r.totalInvested,
     profitLoss: r.profitLoss,

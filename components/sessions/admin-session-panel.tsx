@@ -16,7 +16,6 @@ interface ResultRow {
   userName: string;
   buyIn: number;
   rebuy: number;
-  addons: number;
   cashOut: number;
   totalInvested: number;
   profitLoss: number;
@@ -38,7 +37,7 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
   const [saving, setSaving] = useState(false);
   const [addingLoading, setAddingLoading] = useState(false);
   const [freezingUser, setFreezingUser] = useState<string | null>(null);
-  const [formValues, setFormValues] = useState<Record<string, { buyIn: number; rebuy: number; addons: number; cashOut: number }>>({});
+  const [formValues, setFormValues] = useState<Record<string, { buyIn: number; rebuy: number; cashOut: number }>>({});
 
   useEffect(() => {
     fetch(`/api/groups/${groupId}/members`)
@@ -53,13 +52,13 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
   function startEdit(r: ResultRow) {
     setFormValues((prev) => ({
       ...prev,
-      [r.userId]: { buyIn: r.buyIn, rebuy: r.rebuy, addons: r.addons, cashOut: r.cashOut },
+      [r.userId]: { buyIn: r.buyIn, rebuy: r.rebuy, cashOut: r.cashOut },
     }));
     setEditingUser(r.userId);
   }
 
   function getForm(userId: string) {
-    return formValues[userId] || { buyIn: 0, rebuy: 0, addons: 0, cashOut: 0 };
+    return formValues[userId] || { buyIn: 0, rebuy: 0, cashOut: 0 };
   }
 
   function updateForm(userId: string, field: string, value: number) {
@@ -179,7 +178,7 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
             {results.map((r) => {
               const isEditing = editingUser === r.userId;
               const f = getForm(r.userId);
-              const totalInv = (f.buyIn || 0) + (f.rebuy || 0) + (f.addons || 0);
+              const totalInv = (f.buyIn || 0) + (f.rebuy || 0);
               const pl = (f.cashOut || 0) - totalInv;
               const member = memberMap[r.userId];
               const isFrozen = member?.isFrozen ?? false;
@@ -258,7 +257,6 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
                         {[
                           { key: "buyIn", label: "קנייה ₪" },
                           { key: "rebuy", label: "ריבאי ₪" },
-                          { key: "addons", label: "אדאון ₪" },
                           { key: "cashOut", label: "יציאה ₪" },
                         ].map(({ key, label }) => (
                           <div key={key} className="space-y-1">

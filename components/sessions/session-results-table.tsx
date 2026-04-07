@@ -6,7 +6,6 @@ interface ResultRow {
   name: string;
   buyIn: number;
   rebuy: number;
-  addons: number;
   cashOut: number;
   totalInvested: number;
   profitLoss: number;
@@ -23,7 +22,6 @@ export function SessionResultsTable({ results }: { results: ResultRow[] }) {
             <th className="pb-3 text-right font-medium px-2">שחקן</th>
             <th className="pb-3 text-right font-medium px-2">קנייה</th>
             <th className="pb-3 text-right font-medium px-2 hidden md:table-cell">ריבאי</th>
-            <th className="pb-3 text-right font-medium px-2 hidden md:table-cell">אדאון</th>
             <th className="pb-3 text-right font-medium px-2">סה"כ השקעה</th>
             <th className="pb-3 text-right font-medium px-2">יציאה</th>
             <th className="pb-3 text-right font-medium px-2">רווח / הפסד</th>
@@ -36,7 +34,6 @@ export function SessionResultsTable({ results }: { results: ResultRow[] }) {
               <td className="py-3 px-2 font-medium">{r.name}</td>
               <td className="py-3 px-2">{r.isSubmitted ? formatCurrency(r.buyIn) : "—"}</td>
               <td className="py-3 px-2 hidden md:table-cell">{r.isSubmitted ? formatCurrency(r.rebuy) : "—"}</td>
-              <td className="py-3 px-2 hidden md:table-cell">{r.isSubmitted ? formatCurrency(r.addons) : "—"}</td>
               <td className="py-3 px-2">{r.isSubmitted ? formatCurrency(r.totalInvested) : "—"}</td>
               <td className="py-3 px-2">{r.isSubmitted ? formatCurrency(r.cashOut) : "—"}</td>
               <td className={cn("py-3 px-2 font-semibold",
@@ -58,7 +55,7 @@ export function SessionResultsTable({ results }: { results: ResultRow[] }) {
         {results.some((r) => r.isSubmitted) && (
           <tfoot>
             <tr className="bg-muted/30 font-semibold">
-              <td className="py-2 px-2" colSpan={4}>סה"כ</td>
+              <td className="py-2 px-2" colSpan={3}>סה"כ</td>
               <td className="py-2 px-2" colSpan={3}></td>
               <td className={cn("py-2 px-2", total === 0 ? "text-green-600" : "text-red-600")}>
                 {total === 0 ? "✓ מאוזן" : `${total > 0 ? "+" : ""}${formatCurrency(total)}`}

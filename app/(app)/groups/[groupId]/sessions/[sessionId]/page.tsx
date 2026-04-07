@@ -24,7 +24,6 @@ import { Loader2, MapPin, Lock, Unlock, Trash2, Pencil, AlertCircle, CheckCircle
 const schema = z.object({
   buyIn: z.coerce.number().min(0, "חייב להיות 0 או יותר"),
   rebuy: z.coerce.number().min(0),
-  addons: z.coerce.number().min(0),
   cashOut: z.coerce.number().min(0),
 });
 type FormData = z.infer<typeof schema>;
@@ -43,7 +42,7 @@ export default function SessionDetailPage() {
 
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) });
   const watched = watch();
-  const totalInvested = (Number(watched.buyIn) || 0) + (Number(watched.rebuy) || 0) + (Number(watched.addons) || 0);
+  const totalInvested = (Number(watched.buyIn) || 0) + (Number(watched.rebuy) || 0);
   const profitLoss = (Number(watched.cashOut) || 0) - totalInvested;
 
   async function load() {
@@ -53,7 +52,7 @@ export default function SessionDetailPage() {
     setData(json);
     const myResult = json.results.find((r: any) => r.userId === authSession?.user?.id);
     if (myResult?.isSubmitted) {
-      reset({ buyIn: myResult.buyIn, rebuy: myResult.rebuy, addons: myResult.addons, cashOut: myResult.cashOut });
+      reset({ buyIn: myResult.buyIn, rebuy: myResult.rebuy, cashOut: myResult.cashOut });
     }
     setLoading(false);
   }
@@ -220,10 +219,6 @@ export default function SessionDetailPage() {
                       <Input type="number" min="0" step="1" {...register("rebuy")} />
                     </div>
                     <div className="space-y-1">
-                      <Label>אדאון (₪)</Label>
-                      <Input type="number" min="0" step="1" {...register("addons")} />
-                    </div>
-                    <div className="space-y-1">
                       <Label>יציאה (₪)</Label>
                       <Input type="number" min="0" step="1" {...register("cashOut")} />
                       {errors.cashOut && <p className="text-xs text-destructive">{errors.cashOut.message}</p>}
@@ -271,7 +266,7 @@ export default function SessionDetailPage() {
             <CardContent>
               <SessionResultsTable results={data.results.map((r: any) => ({
                 userId: r.userId, name: r.userName, buyIn: r.buyIn, rebuy: r.rebuy,
-                addons: r.addons, cashOut: r.cashOut, totalInvested: r.totalInvested,
+                cashOut: r.cashOut, totalInvested: r.totalInvested,
                 profitLoss: r.profitLoss, isSubmitted: r.isSubmitted,
               }))} />
             </CardContent>

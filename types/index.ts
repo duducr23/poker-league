@@ -50,7 +50,6 @@ export interface SessionHistoryItem {
   location: string | null;
   buyIn: number;
   rebuy: number;
-  addons: number;
   cashOut: number;
   totalInvested: number;
   profitLoss: number;

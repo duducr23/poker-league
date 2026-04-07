@@ -15,7 +15,6 @@ import { formatCurrency } from "@/lib/utils";
 const resultSchema = z.object({
   buyIn: z.coerce.number().min(0),
   rebuy: z.coerce.number().min(0),
-  addons: z.coerce.number().min(0),
   cashOut: z.coerce.number().min(0),
 });
 
@@ -109,10 +108,10 @@ export default function SessionEditPage() {
 function ResultEditCard({ result, isEditing, onEdit, onCancel, onSave, saving }: any) {
   const { register, handleSubmit, watch } = useForm({
     resolver: zodResolver(resultSchema),
-    defaultValues: { buyIn: result.buyIn, rebuy: result.rebuy, addons: result.addons, cashOut: result.cashOut },
+    defaultValues: { buyIn: result.buyIn, rebuy: result.rebuy, cashOut: result.cashOut },
   });
   const w = watch();
-  const inv = (Number(w.buyIn) || 0) + (Number(w.rebuy) || 0) + (Number(w.addons) || 0);
+  const inv = (Number(w.buyIn) || 0) + (Number(w.rebuy) || 0);
   const pl = (Number(w.cashOut) || 0) - inv;
 
   return (
@@ -138,10 +137,10 @@ function ResultEditCard({ result, isEditing, onEdit, onCancel, onSave, saving }:
         ) : (
           <form onSubmit={handleSubmit(onSave)} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              {["buyIn", "rebuy", "addons", "cashOut"].map((field) => (
+              {["buyIn", "rebuy", "cashOut"].map((field) => (
                 <div key={field} className="space-y-1">
                   <Label className="text-xs">
-                    {field === "buyIn" ? "קנייה" : field === "rebuy" ? "ריבאי" : field === "addons" ? "אדאון" : "יציאה"} (₪)
+                    {field === "buyIn" ? "קנייה" : field === "rebuy" ? "ריבאי" : "יציאה"} (₪)
                   </Label>
                   <Input type="number" min="0" step="1" {...register(field as any)} className="h-8 text-sm" />
                 </div>

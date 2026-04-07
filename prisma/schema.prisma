@@ -129,7 +129,6 @@ model SessionParticipantResult {
   userId        String
   buyIn         Float     @default(0)
   rebuy         Float     @default(0)
-  addons        Float     @default(0)
   cashOut       Float     @default(0)
   totalInvested Float     @default(0)
   profitLoss    Float     @default(0)
