@@ -33,10 +33,10 @@ async function main() {
     await prisma.groupMember.create({ data: { groupId: group.id, userId: p.id, role: GroupRole.MEMBER } });
   }
 
-  type PlayerResult = { userId: string; buyIn: number; rebuy: number; addons: number; cashOut: number };
+  type PlayerResult = { userId: string; buyIn: number; rebuy: number; cashOut: number };
 
   async function createClosedSession(date: Date, location: string, results: PlayerResult[]) {
-    const totalIn  = results.reduce((s, r) => s + r.buyIn + r.rebuy + r.addons, 0);
+    const totalIn  = results.reduce((s, r) => s + r.buyIn + r.rebuy, 0);
     const totalOut = results.reduce((s, r) => s + r.cashOut, 0);
     if (Math.abs(totalOut - totalIn) > 0.01) {
       throw new Error(`Session unbalanced: in=${totalIn} out=${totalOut} diff=${totalOut-totalIn}`);
@@ -45,12 +45,12 @@ async function main() {
       data: { groupId: group.id, date, location, status: SessionStatus.CLOSED, createdById: admin.id },
     });
     for (const r of results) {
-      const totalInvested = r.buyIn + r.rebuy + r.addons;
+      const totalInvested = r.buyIn + r.rebuy;
       const profitLoss    = r.cashOut - totalInvested;
       await prisma.sessionParticipantResult.create({
         data: {
           sessionId: session.id, userId: r.userId,
-          buyIn: r.buyIn, rebuy: r.rebuy, addons: r.addons, cashOut: r.cashOut,
+          buyIn: r.buyIn, rebuy: r.rebuy, cashOut: r.cashOut,
           totalInvested, profitLoss, isSubmitted: true, submittedAt: date,
         },
       });
@@ -63,103 +63,103 @@ async function main() {
   const mo  = (offset: number) => new Date(now.getFullYear(), now.getMonth() - offset, 10 + offset);
 
   await createClosedSession(mo(11), "בית ישראל",   [
-    { userId: admin.id, buyIn:200, rebuy:0,   addons:0, cashOut:750 },
-    { userId: p1.id,    buyIn:200, rebuy:100, addons:0, cashOut:50  },
-    { userId: p2.id,    buyIn:200, rebuy:0,   addons:0, cashOut:100 },
-    { userId: p3.id,    buyIn:200, rebuy:0,   addons:0, cashOut:200 },
-    { userId: p4.id,    buyIn:200, rebuy:100, addons:0, cashOut:300 },
-    { userId: p5.id,    buyIn:200, rebuy:0,   addons:0, cashOut:0   },
+    { userId: admin.id, buyIn:200, rebuy:0,   cashOut:750 },
+    { userId: p1.id,    buyIn:200, rebuy:100, cashOut:50  },
+    { userId: p2.id,    buyIn:200, rebuy:0,   cashOut:100 },
+    { userId: p3.id,    buyIn:200, rebuy:0,   cashOut:200 },
+    { userId: p4.id,    buyIn:200, rebuy:100, cashOut:300 },
+    { userId: p5.id,    buyIn:200, rebuy:0,   cashOut:0   },
   ]);
   await createClosedSession(mo(10), "בית משה",     [
-    { userId: admin.id, buyIn:200, rebuy:0,   addons:0, cashOut:350 },
-    { userId: p1.id,    buyIn:200, rebuy:0,   addons:0, cashOut:400 },
-    { userId: p2.id,    buyIn:200, rebuy:100, addons:0, cashOut:100 },
-    { userId: p3.id,    buyIn:200, rebuy:0,   addons:0, cashOut:150 },
-    { userId: p4.id,    buyIn:200, rebuy:0,   addons:0, cashOut:0   },
-    { userId: p5.id,    buyIn:200, rebuy:0,   addons:0, cashOut:300 },
+    { userId: admin.id, buyIn:200, rebuy:0,   cashOut:350 },
+    { userId: p1.id,    buyIn:200, rebuy:0,   cashOut:400 },
+    { userId: p2.id,    buyIn:200, rebuy:100, cashOut:100 },
+    { userId: p3.id,    buyIn:200, rebuy:0,   cashOut:150 },
+    { userId: p4.id,    buyIn:200, rebuy:0,   cashOut:0   },
+    { userId: p5.id,    buyIn:200, rebuy:0,   cashOut:300 },
   ]);
   await createClosedSession(mo(9),  "קלאב 8",      [
-    { userId: admin.id, buyIn:300, rebuy:100, addons:0, cashOut:1200 },
-    { userId: p1.id,    buyIn:300, rebuy:0,   addons:0, cashOut:100  },
-    { userId: p2.id,    buyIn:300, rebuy:0,   addons:0, cashOut:300  },
-    { userId: p3.id,    buyIn:300, rebuy:100, addons:0, cashOut:0    },
-    { userId: p4.id,    buyIn:300, rebuy:0,   addons:0, cashOut:400  },
-    { userId: p5.id,    buyIn:300, rebuy:0,   addons:0, cashOut:0    },
+    { userId: admin.id, buyIn:300, rebuy:100, cashOut:1200 },
+    { userId: p1.id,    buyIn:300, rebuy:0,   cashOut:100  },
+    { userId: p2.id,    buyIn:300, rebuy:0,   cashOut:300  },
+    { userId: p3.id,    buyIn:300, rebuy:100, cashOut:0    },
+    { userId: p4.id,    buyIn:300, rebuy:0,   cashOut:400  },
+    { userId: p5.id,    buyIn:300, rebuy:0,   cashOut:0    },
   ]);
   await createClosedSession(mo(8),  "בית דוד",     [
-    { userId: admin.id, buyIn:200, rebuy:0,   addons:0, cashOut:300 },
-    { userId: p1.id,    buyIn:200, rebuy:0,   addons:0, cashOut:250 },
-    { userId: p2.id,    buyIn:200, rebuy:100, addons:0, cashOut:500 },
-    { userId: p3.id,    buyIn:200, rebuy:0,   addons:0, cashOut:50  },
-    { userId: p4.id,    buyIn:200, rebuy:0,   addons:0, cashOut:200 },
-    { userId: p5.id,    buyIn:200, rebuy:0,   addons:0, cashOut:0   },
+    { userId: admin.id, buyIn:200, rebuy:0,   cashOut:300 },
+    { userId: p1.id,    buyIn:200, rebuy:0,   cashOut:250 },
+    { userId: p2.id,    buyIn:200, rebuy:100, cashOut:500 },
+    { userId: p3.id,    buyIn:200, rebuy:0,   cashOut:50  },
+    { userId: p4.id,    buyIn:200, rebuy:0,   cashOut:200 },
+    { userId: p5.id,    buyIn:200, rebuy:0,   cashOut:0   },
   ]);
   await createClosedSession(mo(7),  "בית יוסי",    [
-    { userId: admin.id, buyIn:200, rebuy:100, addons:0, cashOut:500 },
-    { userId: p1.id,    buyIn:200, rebuy:0,   addons:0, cashOut:200 },
-    { userId: p2.id,    buyIn:200, rebuy:0,   addons:0, cashOut:0   },
-    { userId: p3.id,    buyIn:200, rebuy:0,   addons:0, cashOut:400 },
-    { userId: p4.id,    buyIn:200, rebuy:100, addons:0, cashOut:0   },
-    { userId: p5.id,    buyIn:200, rebuy:0,   addons:0, cashOut:300 },
+    { userId: admin.id, buyIn:200, rebuy:100, cashOut:500 },
+    { userId: p1.id,    buyIn:200, rebuy:0,   cashOut:200 },
+    { userId: p2.id,    buyIn:200, rebuy:0,   cashOut:0   },
+    { userId: p3.id,    buyIn:200, rebuy:0,   cashOut:400 },
+    { userId: p4.id,    buyIn:200, rebuy:100, cashOut:0   },
+    { userId: p5.id,    buyIn:200, rebuy:0,   cashOut:300 },
   ]);
   await createClosedSession(mo(6),  "בית אלי",     [
-    { userId: admin.id, buyIn:200, rebuy:0,   addons:0, cashOut:700 },
-    { userId: p1.id,    buyIn:200, rebuy:0,   addons:0, cashOut:200 },
-    { userId: p2.id,    buyIn:200, rebuy:0,   addons:0, cashOut:100 },
-    { userId: p3.id,    buyIn:200, rebuy:100, addons:0, cashOut:0   },
-    { userId: p4.id,    buyIn:200, rebuy:0,   addons:0, cashOut:200 },
-    { userId: p5.id,    buyIn:200, rebuy:0,   addons:0, cashOut:100 },
+    { userId: admin.id, buyIn:200, rebuy:0,   cashOut:700 },
+    { userId: p1.id,    buyIn:200, rebuy:0,   cashOut:200 },
+    { userId: p2.id,    buyIn:200, rebuy:0,   cashOut:100 },
+    { userId: p3.id,    buyIn:200, rebuy:100, cashOut:0   },
+    { userId: p4.id,    buyIn:200, rebuy:0,   cashOut:200 },
+    { userId: p5.id,    buyIn:200, rebuy:0,   cashOut:100 },
   ]);
   await createClosedSession(mo(5),  "פינגווין",    [
-    { userId: admin.id, buyIn:300, rebuy:0,   addons:0, cashOut:650 },
-    { userId: p1.id,    buyIn:300, rebuy:0,   addons:0, cashOut:600 },
-    { userId: p2.id,    buyIn:300, rebuy:100, addons:0, cashOut:0   },
-    { userId: p3.id,    buyIn:300, rebuy:0,   addons:0, cashOut:300 },
-    { userId: p4.id,    buyIn:300, rebuy:0,   addons:0, cashOut:0   },
-    { userId: p5.id,    buyIn:300, rebuy:0,   addons:0, cashOut:350 },
+    { userId: admin.id, buyIn:300, rebuy:0,   cashOut:650 },
+    { userId: p1.id,    buyIn:300, rebuy:0,   cashOut:600 },
+    { userId: p2.id,    buyIn:300, rebuy:100, cashOut:0   },
+    { userId: p3.id,    buyIn:300, rebuy:0,   cashOut:300 },
+    { userId: p4.id,    buyIn:300, rebuy:0,   cashOut:0   },
+    { userId: p5.id,    buyIn:300, rebuy:0,   cashOut:350 },
   ]);
   await createClosedSession(mo(4),  "בית רוני",    [
-    { userId: admin.id, buyIn:200, rebuy:0,   addons:0, cashOut:800 },
-    { userId: p1.id,    buyIn:200, rebuy:100, addons:0, cashOut:0   },
-    { userId: p2.id,    buyIn:200, rebuy:0,   addons:0, cashOut:200 },
-    { userId: p3.id,    buyIn:200, rebuy:0,   addons:0, cashOut:100 },
-    { userId: p4.id,    buyIn:200, rebuy:100, addons:0, cashOut:300 },
-    { userId: p5.id,    buyIn:200, rebuy:0,   addons:0, cashOut:0   },
+    { userId: admin.id, buyIn:200, rebuy:0,   cashOut:800 },
+    { userId: p1.id,    buyIn:200, rebuy:100, cashOut:0   },
+    { userId: p2.id,    buyIn:200, rebuy:0,   cashOut:200 },
+    { userId: p3.id,    buyIn:200, rebuy:0,   cashOut:100 },
+    { userId: p4.id,    buyIn:200, rebuy:100, cashOut:300 },
+    { userId: p5.id,    buyIn:200, rebuy:0,   cashOut:0   },
   ]);
   await createClosedSession(mo(3),  "קזינו רמת גן",[
-    { userId: admin.id, buyIn:500, rebuy:0,   addons:0, cashOut:1200 },
-    { userId: p1.id,    buyIn:500, rebuy:0,   addons:0, cashOut:800  },
-    { userId: p2.id,    buyIn:500, rebuy:0,   addons:0, cashOut:500  },
-    { userId: p3.id,    buyIn:500, rebuy:0,   addons:0, cashOut:0    },
-    { userId: p4.id,    buyIn:500, rebuy:0,   addons:0, cashOut:0    },
-    { userId: p5.id,    buyIn:500, rebuy:0,   addons:0, cashOut:500  },
+    { userId: admin.id, buyIn:500, rebuy:0,   cashOut:1200 },
+    { userId: p1.id,    buyIn:500, rebuy:0,   cashOut:800  },
+    { userId: p2.id,    buyIn:500, rebuy:0,   cashOut:500  },
+    { userId: p3.id,    buyIn:500, rebuy:0,   cashOut:0    },
+    { userId: p4.id,    buyIn:500, rebuy:0,   cashOut:0    },
+    { userId: p5.id,    buyIn:500, rebuy:0,   cashOut:500  },
   ]);
   await createClosedSession(mo(2),  "בית ישראל 2", [
-    { userId: admin.id, buyIn:200, rebuy:100, addons:0, cashOut:800 },
-    { userId: p1.id,    buyIn:200, rebuy:0,   addons:0, cashOut:0   },
-    { userId: p2.id,    buyIn:200, rebuy:0,   addons:0, cashOut:200 },
-    { userId: p3.id,    buyIn:200, rebuy:0,   addons:0, cashOut:0   },
-    { userId: p4.id,    buyIn:200, rebuy:100, addons:0, cashOut:400 },
-    { userId: p5.id,    buyIn:200, rebuy:0,   addons:0, cashOut:0   },
+    { userId: admin.id, buyIn:200, rebuy:100, cashOut:800 },
+    { userId: p1.id,    buyIn:200, rebuy:0,   cashOut:0   },
+    { userId: p2.id,    buyIn:200, rebuy:0,   cashOut:200 },
+    { userId: p3.id,    buyIn:200, rebuy:0,   cashOut:0   },
+    { userId: p4.id,    buyIn:200, rebuy:100, cashOut:400 },
+    { userId: p5.id,    buyIn:200, rebuy:0,   cashOut:0   },
   ]);
   await createClosedSession(mo(1),  "בית משה 2",   [
-    { userId: admin.id, buyIn:200, rebuy:0,   addons:0, cashOut:500 },
-    { userId: p1.id,    buyIn:200, rebuy:0,   addons:0, cashOut:300 },
-    { userId: p2.id,    buyIn:200, rebuy:0,   addons:0, cashOut:200 },
-    { userId: p3.id,    buyIn:200, rebuy:100, addons:0, cashOut:300 },
-    { userId: p4.id,    buyIn:200, rebuy:0,   addons:0, cashOut:0   },
-    { userId: p5.id,    buyIn:200, rebuy:0,   addons:0, cashOut:0   },
+    { userId: admin.id, buyIn:200, rebuy:0,   cashOut:500 },
+    { userId: p1.id,    buyIn:200, rebuy:0,   cashOut:300 },
+    { userId: p2.id,    buyIn:200, rebuy:0,   cashOut:200 },
+    { userId: p3.id,    buyIn:200, rebuy:100, cashOut:300 },
+    { userId: p4.id,    buyIn:200, rebuy:0,   cashOut:0   },
+    { userId: p5.id,    buyIn:200, rebuy:0,   cashOut:0   },
   ]);
   await createClosedSession(
     new Date(now.getFullYear(), now.getMonth(), 5),
     "ערב שישי",
     [
-      { userId: admin.id, buyIn:300, rebuy:0,   addons:0, cashOut:1100 },
-      { userId: p1.id,    buyIn:300, rebuy:0,   addons:0, cashOut:0    },
-      { userId: p2.id,    buyIn:300, rebuy:100, addons:0, cashOut:400  },
-      { userId: p3.id,    buyIn:300, rebuy:0,   addons:0, cashOut:200  },
-      { userId: p4.id,    buyIn:300, rebuy:0,   addons:0, cashOut:200  },
-      { userId: p5.id,    buyIn:300, rebuy:0,   addons:0, cashOut:0    },
+      { userId: admin.id, buyIn:300, rebuy:0,   cashOut:1100 },
+      { userId: p1.id,    buyIn:300, rebuy:0,   cashOut:0    },
+      { userId: p2.id,    buyIn:300, rebuy:100, cashOut:400  },
+      { userId: p3.id,    buyIn:300, rebuy:0,   cashOut:200  },
+      { userId: p4.id,    buyIn:300, rebuy:0,   cashOut:200  },
+      { userId: p5.id,    buyIn:300, rebuy:0,   cashOut:0    },
     ]
   );
 
@@ -172,11 +172,11 @@ async function main() {
   }
   await prisma.sessionParticipantResult.update({
     where: { sessionId_userId: { sessionId: openSession.id, userId: admin.id } },
-    data: { buyIn:200, rebuy:0, addons:0, cashOut:0, totalInvested:200, profitLoss:-200, isSubmitted:true, submittedAt:new Date() },
+    data: { buyIn:200, rebuy:0, cashOut:0, totalInvested:200, profitLoss:-200, isSubmitted:true, submittedAt:new Date() },
   });
   await prisma.sessionParticipantResult.update({
     where: { sessionId_userId: { sessionId: openSession.id, userId: p1.id } },
-    data: { buyIn:200, rebuy:100, addons:0, cashOut:300, totalInvested:300, profitLoss:0, isSubmitted:true, submittedAt:new Date() },
+    data: { buyIn:200, rebuy:100, cashOut:300, totalInvested:300, profitLoss:0, isSubmitted:true, submittedAt:new Date() },
   });
 
   console.log("Seed complete!");
