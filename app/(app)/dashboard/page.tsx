@@ -14,6 +14,7 @@ import { getGroupInsights } from "@/lib/insights";
 import { CopyCodeButton } from "@/components/ui/copy-code-button";
 
 export default async function DashboardPage() {
+  try {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/login");
 
@@ -223,4 +224,15 @@ export default async function DashboardPage() {
         </div>
     </AppShell>
   );
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    const stack = e instanceof Error ? e.stack : "";
+    return (
+      <div style={{ padding: "2rem", fontFamily: "monospace", background: "#0a0a12", color: "#f1f5f9", minHeight: "100vh" }}>
+        <h1 style={{ color: "#f87171" }}>Dashboard Error (debug)</h1>
+        <pre style={{ color: "#fbbf24", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{msg}</pre>
+        <pre style={{ color: "#94a3b8", fontSize: "0.75rem", whiteSpace: "pre-wrap" }}>{stack}</pre>
+      </div>
+    );
+  }
 }
