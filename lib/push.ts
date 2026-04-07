@@ -1,11 +1,11 @@
-import webpush from "web-push";
+// web-push is imported dynamically at call time to prevent build-time VAPID errors
 import { prisma } from "@/lib/db";
 import { type NotificationPayload } from "./push-payloads";
 
 // Lazy VAPID initialisation — only runs at request time, never at build time.
 let vapidInitialised = false;
 
-function ensureVapid(): boolean {
+async function ensureVapid(): Promise<boolean> {
   if (vapidInitialised) return true;
 
   const subject = process.env.VAPID_SUBJECT;
@@ -16,6 +16,7 @@ function ensureVapid(): boolean {
   if (!subject || !privateKey || !publicKey) return false;
 
   try {
+    const webpush = (await import("web-push")).default;
     webpush.setVapidDetails(subject, publicKey, privateKey);
     vapidInitialised = true;
     return true;
@@ -79,6 +80,7 @@ async function sendToSubscription(
   payload: NotificationPayload
 ): Promise<void> {
   try {
+    const webpush = (await import("web-push")).default;
     await webpush.sendNotification(
       { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
       JSON.stringify(payload)
@@ -106,7 +108,7 @@ export async function sendWebPushToUser(
   userId: string,
   payload: NotificationPayload
 ): Promise<void> {
-  if (!ensureVapid()) return;
+  if (!(await ensureVapid())) return;
 
   // Check user preferences
   const user = await prisma.user
@@ -157,7 +159,7 @@ export async function sendWebPushToUsers(
   userIds: string[],
   payload: NotificationPayload
 ): Promise<void> {
-  if (!ensureVapid() || !userIds.length) return;
+  if (!(await ensureVapid()) || !userIds.length) return;
   await Promise.allSettled(userIds.map((uid) => sendWebPushToUser(uid, payload)));
 }
 
