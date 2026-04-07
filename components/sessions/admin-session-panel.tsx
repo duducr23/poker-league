@@ -261,7 +261,7 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
                             <Input
                               type="number"
                               min="0"
-                              step="10"
+                              step="1"
                               value={(f as any)[key] || 0}
                               onChange={(e) => updateForm(r.userId, key, Number(e.target.value))}
                               className="h-8 text-sm"

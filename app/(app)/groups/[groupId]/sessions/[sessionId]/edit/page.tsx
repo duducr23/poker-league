@@ -143,7 +143,7 @@ function ResultEditCard({ result, isEditing, onEdit, onCancel, onSave, saving }:
                   <Label className="text-xs">
                     {field === "buyIn" ? "קנייה" : field === "rebuy" ? "ריבאי" : field === "addons" ? "אדאון" : "יציאה"} (₪)
                   </Label>
-                  <Input type="number" min="0" step="10" {...register(field as any)} className="h-8 text-sm" />
+                  <Input type="number" min="0" step="1" {...register(field as any)} className="h-8 text-sm" />
                 </div>
               ))}
             </div>

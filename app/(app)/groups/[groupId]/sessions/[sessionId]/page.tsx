@@ -212,20 +212,20 @@ export default function SessionDetailPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label>קנייה (₪)</Label>
-                      <Input type="number" min="0" step="10" {...register("buyIn")} />
+                      <Input type="number" min="0" step="1" {...register("buyIn")} />
                       {errors.buyIn && <p className="text-xs text-destructive">{errors.buyIn.message}</p>}
                     </div>
                     <div className="space-y-1">
                       <Label>ריבאי (₪)</Label>
-                      <Input type="number" min="0" step="10" {...register("rebuy")} />
+                      <Input type="number" min="0" step="1" {...register("rebuy")} />
                     </div>
                     <div className="space-y-1">
                       <Label>אדאון (₪)</Label>
-                      <Input type="number" min="0" step="10" {...register("addons")} />
+                      <Input type="number" min="0" step="1" {...register("addons")} />
                     </div>
                     <div className="space-y-1">
                       <Label>יציאה (₪)</Label>
-                      <Input type="number" min="0" step="10" {...register("cashOut")} />
+                      <Input type="number" min="0" step="1" {...register("cashOut")} />
                       {errors.cashOut && <p className="text-xs text-destructive">{errors.cashOut.message}</p>}
                     </div>
                   </div>

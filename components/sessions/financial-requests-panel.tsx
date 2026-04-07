@@ -361,7 +361,7 @@ export function FinancialRequestsPanel({
                       <Input
                         type="number"
                         min="1"
-                        step="10"
+                        step="1"
                         value={requestAmount}
                         onChange={(e) => setRequestAmount(e.target.value)}
                         className="h-8 text-sm"
@@ -393,7 +393,7 @@ export function FinancialRequestsPanel({
                 <Input
                   type="number"
                   min="0"
-                  step="10"
+                  step="1"
                   value={cashOutInput}
                   onChange={(e) => setCashOutInput(e.target.value)}
                   className="h-8 text-sm flex-1"
