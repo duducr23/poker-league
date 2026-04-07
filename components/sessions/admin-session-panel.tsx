@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
 import { formatCurrency } from "@/lib/utils";
-import { Loader2, Save, UserPlus, Snowflake, Flame, X, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { Loader2, Save, UserPlus, Snowflake, Flame, X, CheckCircle2, Clock, AlertCircle, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Member { id: string; name: string; role: string; isFrozen: boolean }
@@ -38,6 +38,7 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
   const [addingLoading, setAddingLoading] = useState(false);
   const [freezingUser, setFreezingUser] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<Record<string, { buyIn: number; rebuy: number; cashOut: number }>>({});
+  const [forceClosing, setForceClosing] = useState(false);
 
   useEffect(() => {
     fetch(`/api/groups/${groupId}/members`)
@@ -135,6 +136,34 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
   }
 
   const memberMap = Object.fromEntries(allMembers.map((m) => [m.id, m]));
+
+  const unsubmittedCount = results.filter((r) => !r.isSubmitted).length;
+
+  async function forceClose() {
+    if (
+      !confirm(
+        `יש ${unsubmittedCount} שחקנים שלא הגישו תוצאות. האם לגשת אותם עם ערכיהם הנוכחיים ולסגור את הערב?`
+      )
+    )
+      return;
+    setForceClosing(true);
+    try {
+      const res = await fetch(
+        `/api/groups/${groupId}/sessions/${sessionId}/force-close`,
+        { method: "POST" }
+      );
+      const json = await res.json();
+      if (!res.ok) {
+        toast({ title: "שגיאה", description: json.error, variant: "destructive" });
+        return;
+      }
+      toast({ title: "✅ הסשן נסגר" });
+      onRefresh();
+      window.location.href = `/groups/${groupId}/sessions/${sessionId}/summary`;
+    } finally {
+      setForceClosing(false);
+    }
+  }
 
   return (
     <Card style={{ borderColor: "rgba(212,160,23,0.35)", background: "rgba(212,160,23,0.04)" }}>
@@ -310,6 +339,44 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
           <AlertCircle className="h-3.5 w-3.5" />
           שחקן מוקפא לא יופיע בטבלת הדירוג, אך תוצאותיו נשמרות
         </div>
+
+        {/* Force Close section */}
+        {isOpen && unsubmittedCount > 0 && (
+          <div className="space-y-3 pt-2 border-t border-amber-500/20">
+            <Label className="text-xs text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+              <Zap className="h-3.5 w-3.5" />
+              כפה סגירה
+            </Label>
+            <div
+              className="rounded-lg p-3 text-sm"
+              style={{
+                background: "rgba(245,158,11,0.08)",
+                border: "1px solid rgba(245,158,11,0.3)",
+                color: "#fcd34d",
+              }}
+            >
+              יש {unsubmittedCount} שחקנים שלא הגישו תוצאות. לחיצה על הכפתור תגיש אותם עם ערכיהם הנוכחיים ותסגור את הערב.
+            </div>
+            <Button
+              size="sm"
+              className="w-full gap-2 text-sm font-semibold"
+              style={{
+                background: "rgba(245,158,11,0.15)",
+                border: "1px solid rgba(245,158,11,0.5)",
+                color: "#fbbf24",
+              }}
+              onClick={forceClose}
+              disabled={forceClosing}
+            >
+              {forceClosing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Zap className="h-4 w-4" />
+              )}
+              הגש הכל וסגור ערב
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
