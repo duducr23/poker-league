@@ -32,15 +32,32 @@ export default async function GroupPage({ params }: { params: { groupId: string 
   const monthlyLeaderboard = await getLeaderboard(params.groupId, "month");
 
   const qualified = leaderboard.filter((r) => r.gamesPlayed > 0);
-  const top2 = qualified.slice(0, 2);
+  const top3 = qualified.slice(0, 3);   // ← fixed: was incorrectly set to top2
+  const top2 = qualified.slice(0, 2);   // for roast section
   const bottom2 = qualified.length >= 4
     ? qualified.slice(-2).reverse()
     : qualified.length === 3
     ? [qualified[2]]
     : [];
-  // avoid overlap when list is very short
   const bottom2Filtered = bottom2.filter((r) => !top2.find((t) => t.userId === r.userId));
-  const top3 = top2; // keep for existing stat cards below
+
+  // Most wins / most losses (among qualified players)
+  const mostWins   = [...leaderboard].sort((a, b) => b.profitableNights - a.profitableNights)[0];
+  const mostLosses = [...leaderboard].sort((a, b) => b.losingNights    - a.losingNights)[0];
+
+  // Absent from last 2 closed sessions
+  const closedSessions = group.sessions.filter((s) => s.status === "CLOSED").slice(0, 3);
+  const absentPlayers = closedSessions.length >= 2
+    ? group.members
+        .map((m) => {
+          const missed = closedSessions.filter(
+            (s) => !s.results.some((r) => r.userId === m.userId)
+          ).length;
+          return { userId: m.userId, name: m.user.name, missed };
+        })
+        .filter((p) => p.missed >= 2)
+    : [];
+
   const topMonth = monthlyLeaderboard.find((r) => r.gamesPlayed > 0);
   const mostActive = [...leaderboard].sort((a, b) => b.gamesPlayed - a.gamesPlayed)[0];
   const latestClosed = group.sessions.find((s) => s.status === "CLOSED");
@@ -172,6 +189,61 @@ export default async function GroupPage({ params }: { params: { groupId: string 
                   <p className="text-xs text-slate-500">מנצח בערב האחרון</p>
                   <p className="font-semibold text-slate-100">{biggestWinnerName}</p>
                   <p className="text-sm text-emerald-400">+{formatCurrency(biggestWinner.profitLoss)}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {mostWins && mostWins.profitableNights > 0 && (
+            <Card>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-full flex items-center justify-center" style={{background:"rgba(52,211,153,0.12)"}}>
+                  <TrendingUp className="h-5 w-5 text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500">הכי הרבה נצחונות</p>
+                  <p className="font-semibold text-slate-100">{mostWins.name}</p>
+                  <p className="text-sm text-emerald-400">{mostWins.profitableNights} ערבים מנצחים</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {mostLosses && mostLosses.losingNights > 0 && (
+            <Card>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-full flex items-center justify-center" style={{background:"rgba(248,113,113,0.12)"}}>
+                  <ArrowLeft className="h-5 w-5 text-red-400" style={{transform:"rotate(-90deg)"}} />
+                </div>
+                <div>
+                  <p className="text-xs text-slate-500">הכי הרבה הפסדים</p>
+                  <p className="font-semibold text-slate-100">{mostLosses.name}</p>
+                  <p className="text-sm text-red-400">{mostLosses.losingNights} ערבים מפסידים</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {absentPlayers.length > 0 && (
+            <Card style={{borderColor:"rgba(251,191,36,0.2)"}}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-base">🪑</span>
+                  <p className="text-sm font-semibold text-amber-400">חסר בשולחן</p>
+                  <span className="text-xs text-slate-500">(נעדר מ-2+ ערבים אחרונים)</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {absentPlayers.map((p) => (
+                    <Link key={p.userId} href={`/groups/${params.groupId}/players/${p.userId}`}>
+                      <span
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium hover:opacity-80 transition-opacity"
+                        style={{background:"rgba(251,191,36,0.1)", color:"#fbbf24", border:"1px solid rgba(251,191,36,0.25)"}}
+                      >
+                        {p.name}
+                        <span className="text-amber-600">·{p.missed}</span>
+                      </span>
+                    </Link>
+                  ))}
                 </div>
               </CardContent>
             </Card>
