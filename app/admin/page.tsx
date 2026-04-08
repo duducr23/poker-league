@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { CopyInviteLinks } from "@/components/admin/copy-invite-link";
 import { AdminGroupsPanel } from "@/components/admin/admin-groups-panel";
 import { AdminUsersSection } from "@/components/admin/admin-users-section";
+import { SeedDemoButton } from "@/components/admin/seed-demo-button";
 import { Shield, Users, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { headers } from "next/headers";
@@ -106,6 +107,9 @@ export default async function AdminPage() {
             </p>
           </div>
         </div>
+
+        {/* Demo group */}
+        <SeedDemoButton />
 
         {/* Invite links */}
         <CopyInviteLinks groups={groups} baseUrl={baseUrl} />
