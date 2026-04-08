@@ -136,7 +136,7 @@ export function InvitationCard({ invitation: initialInvitation, groupId, current
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title: editForm.title,
-        date: editForm.date,
+        date: new Date(editForm.date).toISOString(),
         location: editForm.location || null,
         notes: editForm.notes || null,
       }),

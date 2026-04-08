@@ -24,7 +24,10 @@ export function CreateInvitationDialog({ groupId }: Props) {
     const res = await fetch(`/api/groups/${groupId}/invitations`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        ...form,
+        date: new Date(form.date).toISOString(),
+      }),
     });
     setLoading(false);
     if (!res.ok) {
