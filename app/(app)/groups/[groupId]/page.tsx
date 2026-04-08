@@ -245,7 +245,6 @@ export default async function GroupPage({ params }: { params: { groupId: string 
                         style={{background:"rgba(251,191,36,0.1)", color:"#fbbf24", border:"1px solid rgba(251,191,36,0.25)"}}
                       >
                         {p.name}
-                        <span className="text-amber-600">·{p.missed}</span>
                       </span>
                     </Link>
                   ))}

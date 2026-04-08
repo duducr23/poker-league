@@ -9,7 +9,7 @@ import {
   Shield, UserCircle2, LogIn, Copy, Spade,
   Star, Share2, CalendarPlus, BarChart3, ArrowLeftRight,
   Receipt, CheckCircle2, XCircle, Camera, Clock, Plus,
-  CreditCard, AlertCircle, RefreshCw
+  CreditCard, AlertCircle, RefreshCw, Scale, Info
 } from "lucide-react";
 
 function Section({ icon: Icon, title, children }: { icon: any; title: string | React.ReactNode; children: React.ReactNode }) {
@@ -296,7 +296,7 @@ export default async function HelpPage() {
         <Section icon={Trophy} title="טבלת דירוג (ליגה)">
           <Row icon="🏆" label="דירוג שחקנים" desc="מסודר לפי רווח/הפסד כולל בכל הסשנים" />
           <Row icon="📈" label="סטטיסטיקות" desc="רווח ממוצע, מספר ניצחונות, סשנים שהשתתף" />
-          <Row icon="⚠️" label="מינימום משחקים" desc="שחקן חייב לפחות 2 משחקים כדי להופיע בטבלה" />
+          <Row icon="⚠️" label="מינימום הגעה" desc="שחקן חייב להגיע לפחות ל-25% מהערבים הסגורים כדי להופיע בטבלה" />
           <Tip icon={Star} text="ניתן לייצא את הדירוג לקובץ CSV מדף הדירוג" />
         </Section>
 
@@ -325,6 +325,53 @@ export default async function HelpPage() {
           <Row icon="🍎" label="אייפון (Safari)" desc='לחץ על כפתור השיתוף ← "הוסף למסך הבית"' />
           <Row icon="💻" label="מחשב (Chrome/Edge)" desc="לחץ על האייקון שמופיע בשורת הכתובת ← התקן" />
           <Tip text="לאחר ההתקנה האפליקציה נפתחת ישירות בלי דפדפן, כמו אפליקציה רגילה" />
+        </Section>
+
+        {/* 11. ספר חוקים */}
+        <Section icon={Scale} title="ספר חוקים — כל התניות המערכת">
+
+          <p className="text-xs text-slate-500 pb-1">
+            כאן מרוכזות כל הכללים הפנימיים שקובעים מי מופיע איפה, מתי ולמה.
+          </p>
+
+          <Divider />
+          <p className="text-xs font-semibold text-yellow-500">🪑 חסר בשולחן</p>
+          <Row icon="❌" label="תנאי הופעה" desc="שחקן יופיע ב'חסר בשולחן' רק אם נעדר משני הערבים הסגורים האחרונים ברצף" />
+          <Row icon="✅" label="הסרה אוטומטית" desc="שיחק בערב האחרון? נעלם מהרשימה מיד — גם אם פספס לפני כן" />
+          <Row icon="ℹ️" label="פחות מ-2 ערבים סגורים?" desc="הווידג'ט לא יופיע בכלל — אין מספיק נתונים לקבוע" />
+
+          <Divider />
+          <p className="text-xs font-semibold text-yellow-500">📊 זכאות לטבלת דירוג וניתוח שחקנים</p>
+          <Row icon="🎯" label="סף כניסה" desc="שחקן מוסמך אם שיחק לפחות 25% מכלל הערבים הסגורים בקבוצה" />
+          <Row icon="📉" label="מה לא נחשב" desc="שחקנים מתחת לסף לא מופיעים בטבלת הדירוג, ולא בטופ/בוטום" />
+          <Row icon="❄️" label="שחקן מוקפא" desc="שחקן מוקפא לא מופיע בשום טבלת דירוג, גם אם עמד בסף" />
+
+          <Divider />
+          <p className="text-xs font-semibold text-yellow-500">🏆 טופ 3 כל הזמנים</p>
+          <Row icon="🥇" label="מי מופיע" desc="3 השחקנים המוסמכים עם הרווח הכולל הגבוה ביותר לאורך כל הזמן" />
+          <Row icon="🔢" label="מינימום נדרש" desc="לפחות 25% הגעה מכלל ערבים סגורים — ראה סף כניסה למעלה" />
+          <Row icon="📍" label="מיקום בדף" desc="מוצג בעמוד הבית של הקבוצה, בכרטיסיות זהב/כסף/ארד" />
+
+          <Divider />
+          <p className="text-xs font-semibold text-yellow-500">💀 נלחמים בתחתית</p>
+          <Row icon="🃏" label="מי מופיע" desc="3 השחקנים המוסמכים עם הרווח הכולל הנמוך ביותר (הפסד הגדול ביותר)" />
+          <Row icon="🚫" label="ללא חפיפה" desc="שחקן שמופיע בטופ 3 לא יכול להופיע גם בתחתית — אין כפילות" />
+          <Row icon="📍" label="מיקום בדף" desc="מוצג מיד מתחת לטופ 3 בדף הבית של הקבוצה" />
+
+          <Divider />
+          <p className="text-xs font-semibold text-yellow-500">🔥 ניתוח שחקנים ללא צנזורה (Roast)</p>
+          <Row icon="👑" label="מי מופיע" desc="טופ 2 הרווחיים ביותר + 2 המפסידים הגדולים ביותר — מבין המוסמכים בלבד" />
+          <Row icon="🔄" label="סיבוב טקסטים" desc="הטקסטים מתחלפים אוטומטית כל יומיים החל מתאריך הערב האחרון" />
+          <Row icon="🎲" label="שונה בין שחקנים" desc="כל שחקן מקבל טקסט שונה — מבוסס על זהות השחקן + מחזור הזמן הנוכחי" />
+          <Row icon="📍" label="מיקום בדף" desc="כרטיסיות זהב (טופ) ואדומות (תחתית) בדף הבית של הקבוצה, מתחת לדירוג" />
+
+          <Divider />
+          <p className="text-xs font-semibold text-yellow-500">🏅 הכי הרבה נצחונות / הכי הרבה הפסדים</p>
+          <Row icon="🏆" label="נצחונות" desc="השחקן המוסמך עם המספר הגבוה ביותר של ערבים שיצא מהם ברווח (profit > 0)" />
+          <Row icon="💸" label="הפסדים" desc="השחקן המוסמך עם המספר הגבוה ביותר של ערבים שיצא מהם בהפסד (profit < 0)" />
+          <Row icon="📍" label="מיקום בדף" desc="שתי כרטיסיות הייליט מתחת לדירוג הראשי בדף הבית של הקבוצה" />
+          <Tip icon={Info} text="בכל הרשימות — שחקן שמוקפא לא נלקח בחשבון, גם אם יש לו נתונים היסטוריים חזקים" />
+
         </Section>
 
         {/* Quick reference */}
