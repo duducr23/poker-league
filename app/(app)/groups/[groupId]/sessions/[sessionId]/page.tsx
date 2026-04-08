@@ -226,7 +226,7 @@ export default function SessionDetailPage() {
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg bg-background border">
                     <div className="text-sm">
-                      <span className="text-muted-foreground">סה"כ השקעה: </span>
+                      <span className="text-muted-foreground">סה"כ קנייה: </span>
                       <span className="font-medium">{formatCurrency(totalInvested)}</span>
                     </div>
                     <div className="text-sm">

@@ -22,7 +22,7 @@ export function SessionResultsTable({ results }: { results: ResultRow[] }) {
             <th className="pb-3 text-right font-medium px-2">שחקן</th>
             <th className="pb-3 text-right font-medium px-2">קנייה</th>
             <th className="pb-3 text-right font-medium px-2 hidden md:table-cell">ריבאי</th>
-            <th className="pb-3 text-right font-medium px-2">סה"כ השקעה</th>
+            <th className="pb-3 text-right font-medium px-2">סה"כ קנייה</th>
             <th className="pb-3 text-right font-medium px-2">יציאה</th>
             <th className="pb-3 text-right font-medium px-2">רווח / הפסד</th>
             <th className="pb-3 text-right font-medium px-2">סטטוס</th>

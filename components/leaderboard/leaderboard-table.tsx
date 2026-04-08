@@ -23,7 +23,7 @@ export function LeaderboardTable({ rows, groupId }: LeaderboardTableProps) {
             <th className="pb-3 text-right font-medium px-2">🏆 נצחונות</th>
             <th className="pb-3 text-right font-medium px-2">💸 הפסדים</th>
             <th className="pb-3 text-right font-medium px-2">% הצלחה</th>
-            <th className="pb-3 text-right font-medium px-2 hidden lg:table-cell">סה"כ השקעה</th>
+            <th className="pb-3 text-right font-medium px-2 hidden lg:table-cell">סה"כ קנייה</th>
             <th className="pb-3 text-right font-medium px-2">רווח / הפסד</th>
             <th className="pb-3 text-right font-medium px-2 hidden lg:table-cell">ממוצע</th>
             <th className="pb-3 text-right font-medium px-2 hidden md:table-cell">תשואה</th>

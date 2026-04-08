@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
 import { AppShell } from "@/components/layout/app-shell";
 import { NotificationSettings } from "@/components/push/notification-settings";
+import { SuperAdminNameEditor } from "@/components/profile/super-admin-name-editor";
 import { ArrowRight, UserCircle2 } from "lucide-react";
 import Link from "next/link";
 
@@ -54,6 +55,8 @@ export default async function ProfilePage() {
           >
             <AvatarPicker currentImage={user?.image} />
           </div>
+
+          {isSuperAdmin && <SuperAdminNameEditor currentName={user?.name ?? ""} />}
 
           <NotificationSettings />
         </div>
