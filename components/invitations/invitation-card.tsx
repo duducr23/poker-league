@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, MapPin, StickyNote, Trash2, CalendarDays, Clock, Share2, Check, ExternalLink, Pencil, X, Save, Navigation } from "lucide-react";
+import { Loader2, MapPin, StickyNote, Trash2, CalendarDays, Clock, Share2, Check, ExternalLink, Pencil, X, Save, Navigation, ShieldCheck } from "lucide-react";
 
 interface Response {
   id: string;
@@ -61,6 +61,28 @@ export function InvitationCard({ invitation: initialInvitation, groupId, current
   const [loading, setLoading] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [adminRsvpLoading, setAdminRsvpLoading] = useState<string | null>(null); // userId:status
+
+  async function adminRsvp(userId: string, status: "COMING" | "NOT_COMING" | "MAYBE") {
+    const key = `${userId}:${status}`;
+    setAdminRsvpLoading(key);
+    const res = await fetch(`/api/groups/${groupId}/invitations/${invitation.id}/admin-rsvp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, status }),
+    });
+    setAdminRsvpLoading(null);
+    if (!res.ok) { toast({ title: "שגיאה", variant: "destructive" }); return; }
+    const targetUser = allMembers.find(m => m.id === userId) ?? { id: userId, name: "", image: null };
+    setInvitation(prev => ({
+      ...prev,
+      responses: [
+        ...prev.responses.filter(r => r.userId !== userId),
+        { id: `admin-${Date.now()}`, userId, status, user: targetUser },
+      ],
+    }));
+    router.refresh();
+  }
 
   // Edit state
   const [editing, setEditing] = useState(false);
@@ -315,7 +337,18 @@ export function InvitationCard({ invitation: initialInvitation, groupId, current
 
         {/* Attendance */}
         <div className="px-5 py-4 space-y-3">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">מי מגיע?</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">מי מגיע?</p>
+            {isAdmin && (
+              <span
+                className="text-xs flex items-center gap-1 px-2 py-0.5 rounded-full"
+                style={{ color: "#818cf8", background: "rgba(129,140,248,0.1)", border: "1px solid rgba(129,140,248,0.2)" }}
+              >
+                <ShieldCheck className="h-3 w-3" />
+                אדמין — לחץ על שחקן לשינוי סטטוס
+              </span>
+            )}
+          </div>
 
           {/* Progress bar */}
           <div className="flex h-1.5 rounded-full overflow-hidden gap-0.5">
@@ -338,6 +371,7 @@ export function InvitationCard({ invitation: initialInvitation, groupId, current
             {
               label: `מגיעים (${coming.length})`,
               people: coming.map(r => r.user),
+              currentStatus: "COMING" as const,
               color: "#10b981",
               bg: "rgba(16,185,129,0.08)",
               border: "rgba(16,185,129,0.2)",
@@ -346,6 +380,7 @@ export function InvitationCard({ invitation: initialInvitation, groupId, current
             {
               label: `אולי (${maybe.length})`,
               people: maybe.map(r => r.user),
+              currentStatus: "MAYBE" as const,
               color: "#fbbf24",
               bg: "rgba(251,191,36,0.08)",
               border: "rgba(251,191,36,0.2)",
@@ -354,6 +389,7 @@ export function InvitationCard({ invitation: initialInvitation, groupId, current
             {
               label: `לא מגיעים (${notComing.length})`,
               people: notComing.map(r => r.user),
+              currentStatus: "NOT_COMING" as const,
               color: "#f87171",
               bg: "rgba(248,113,113,0.08)",
               border: "rgba(248,113,113,0.2)",
@@ -362,12 +398,13 @@ export function InvitationCard({ invitation: initialInvitation, groupId, current
             {
               label: `לא ענו (${notAnswered})`,
               people: allMembers.filter(m => !invitation.responses.find(r => r.userId === m.id)),
+              currentStatus: null,
               color: "#64748b",
               bg: "rgba(100,116,139,0.06)",
               border: "rgba(100,116,139,0.15)",
               dot: "#475569",
             },
-          ].map(({ label, people, color, bg, border, dot }) => (
+          ].map(({ label, people, currentStatus, color, bg, border, dot }) => (
             <div
               key={label}
               className="rounded-lg px-3 py-2.5"
@@ -382,11 +419,32 @@ export function InvitationCard({ invitation: initialInvitation, groupId, current
                       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs"
                       style={{ background: "rgba(255,255,255,0.05)", color: "#cbd5e1", border: "1px solid rgba(255,255,255,0.08)" }}
                     >
-                      <span
-                        className="h-1.5 w-1.5 rounded-full shrink-0"
-                        style={{ background: dot }}
-                      />
+                      <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: dot }} />
                       {u.name}
+                      {isAdmin && (
+                        <span className="flex items-center gap-0.5 mr-1 border-r border-white/10 pr-1">
+                          {(["COMING", "NOT_COMING", "MAYBE"] as const).map(s => {
+                            const icons = { COMING: "✅", NOT_COMING: "❌", MAYBE: "🤔" };
+                            const isActive = currentStatus === s;
+                            const isLoading = adminRsvpLoading === `${u.id}:${s}`;
+                            return (
+                              <button
+                                key={s}
+                                onClick={() => adminRsvp(u.id, s)}
+                                disabled={adminRsvpLoading !== null}
+                                title={STATUS_CONFIG[s].label}
+                                className="text-[10px] leading-none rounded transition-opacity disabled:opacity-40"
+                                style={{
+                                  opacity: isLoading ? 0.5 : isActive ? 1 : 0.35,
+                                  transform: isActive ? "scale(1.2)" : "scale(1)",
+                                }}
+                              >
+                                {isLoading ? "⏳" : icons[s]}
+                              </button>
+                            );
+                          })}
+                        </span>
+                      )}
                     </span>
                   ))}
                 </div>
