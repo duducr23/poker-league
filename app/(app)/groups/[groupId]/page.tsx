@@ -68,9 +68,10 @@ export default async function GroupPage({ params }: { params: { groupId: string 
   const mostActive = [...leaderboard].sort((a, b) => b.gamesPlayed - a.gamesPlayed)[0];
   const latestClosed = group.sessions.find((s) => s.status === "CLOSED");
   // Rotation seed: changes every 2 days from last session date
+  // Rotation seed: changes every 24 hours from last session date
   const rotationSeed = latestClosed
-    ? Math.floor((Date.now() - new Date(latestClosed.date).getTime()) / (2 * 24 * 60 * 60 * 1000))
-    : 0;
+    ? Math.floor((Date.now() - new Date(latestClosed.date).getTime()) / (24 * 60 * 60 * 1000))
+    : Math.floor(Date.now() / (24 * 60 * 60 * 1000));
   const biggestWinner = latestClosed
     ? latestClosed.results.reduce((best, r) => (!best || r.profitLoss > best.profitLoss ? r : best), null as (typeof latestClosed.results[0]) | null)
     : null;
