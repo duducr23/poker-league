@@ -49,18 +49,20 @@ export default async function GroupPage({ params }: { params: { groupId: string 
   const mostWins   = [...leaderboard].sort((a, b) => b.profitableNights - a.profitableNights)[0];
   const mostLosses = [...leaderboard].sort((a, b) => b.losingNights    - a.losingNights)[0];
 
-  // Absent from last 2 closed sessions
-  const closedSessions = group.sessions.filter((s) => s.status === "CLOSED").slice(0, 3);
-  const absentPlayers = closedSessions.length >= 2
+  // Absent from BOTH of the last 2 closed sessions (consecutive absence)
+  const last2Closed = group.sessions.filter((s) => s.status === "CLOSED").slice(0, 2);
+  const absentPlayers = last2Closed.length >= 2
     ? group.members
-        .map((m) => {
-          const missed = closedSessions.filter(
-            (s) => !s.results.some((r) => r.userId === m.userId)
-          ).length;
-          return { userId: m.userId, name: m.user.name, missed };
-        })
-        .filter((p) => p.missed >= 2)
+        .filter((m) => last2Closed.every((s) => !s.results.some((r) => r.userId === m.userId)))
+        .map((m) => ({ userId: m.userId, name: m.user.name }))
     : [];
+
+  // Bottom 3 for "נלחמים בתחתית" (no overlap with top3)
+  const top3UserIds = new Set(top3.map((r) => r.userId));
+  const bottom3ForCard = qualified
+    .filter((r) => !top3UserIds.has(r.userId))
+    .slice(-3)
+    .reverse();
 
   const topMonth = monthlyLeaderboard.find((r) => r.gamesPlayed > 0);
   const mostActive = [...leaderboard].sort((a, b) => b.gamesPlayed - a.gamesPlayed)[0];
@@ -261,6 +263,41 @@ export default async function GroupPage({ params }: { params: { groupId: string 
           </Card>
         </div>
       </div>
+
+      {/* Bottom 3 — נלחמים בתחתית */}
+      {bottom3ForCard.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-lg">📉</span>
+              נלחמים בתחתית
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {bottom3ForCard.map((r) => (
+                <Link
+                  key={r.userId}
+                  href={`/groups/${params.groupId}/players/${r.userId}`}
+                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                  style={{ borderColor: "rgba(248,113,113,0.2)" }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg font-bold text-red-500">#{r.rank}</span>
+                    <div>
+                      <p className="font-medium">{r.name}</p>
+                      <p className="text-xs text-muted-foreground">{r.gamesPlayed} משחקים</p>
+                    </div>
+                  </div>
+                  <span className={r.totalProfitLoss >= 0 ? "text-green-600 font-semibold" : "text-red-500 font-semibold"}>
+                    {r.totalProfitLoss > 0 ? "+" : ""}{formatCurrency(r.totalProfitLoss)}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Top/Bottom roast */}
       {(top2.length > 0 || bottom2Filtered.length > 0) && (
