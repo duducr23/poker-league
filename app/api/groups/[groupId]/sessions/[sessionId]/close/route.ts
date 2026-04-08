@@ -42,6 +42,9 @@ export async function POST(
       data: { status: "CLOSED" },
     });
 
+    // Delete linked invitation (if exists) so it won't appear on invitations page
+    await prisma.eventInvitation.deleteMany({ where: { sessionId: params.sessionId } });
+
     // Compute settlements & achievements after closing (non-blocking errors)
     await Promise.allSettled([
       computeAndSaveSettlements(params.sessionId),
