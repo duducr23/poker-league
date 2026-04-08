@@ -18,13 +18,17 @@ export default async function GroupPage({ params }: { params: { groupId: string 
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/login");
 
-  const group = await prisma.group.findUnique({
-    where: { id: params.groupId },
-    include: {
-      members: { include: { user: { select: { id: true, name: true } } } },
-      sessions: { orderBy: { date: "desc" }, take: 5, include: { results: true } },
-    },
-  });
+  const [group, totalGames, openSessions] = await Promise.all([
+    prisma.group.findUnique({
+      where: { id: params.groupId },
+      include: {
+        members: { include: { user: { select: { id: true, name: true } } } },
+        sessions: { orderBy: { date: "desc" }, take: 5, include: { results: true } },
+      },
+    }),
+    prisma.session.count({ where: { groupId: params.groupId, status: "CLOSED" } }),
+    prisma.session.count({ where: { groupId: params.groupId, status: "OPEN" } }),
+  ]);
   if (!group) notFound();
 
   const admin = await isGroupAdmin(params.groupId, session.user.id);
@@ -72,8 +76,7 @@ export default async function GroupPage({ params }: { params: { groupId: string 
     ? group.members.find((m) => m.userId === biggestWinner.userId)?.user.name
     : null;
 
-  const totalGames = group.sessions.filter((s) => s.status === "CLOSED").length;
-  const openSessions = group.sessions.filter((s) => s.status === "OPEN").length;
+  // totalGames and openSessions come from direct DB count queries above
 
   return (
     <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-8">
