@@ -123,34 +123,75 @@ export default async function GroupPage({ params }: { params: { groupId: string 
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Top 3 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Medal className="h-5 w-5 text-yellow-500" />טופ 3 כל הזמנים</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {top3.length === 0 ? (
-              <p className="text-sm text-muted-foreground">אין נתונים עדיין</p>
-            ) : (
-              <div className="space-y-3">
-                {top3.map((r) => (
-                  <Link key={r.userId} href={`/groups/${params.groupId}/players/${r.userId}`} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <span className={`text-lg font-bold ${r.rank === 1 ? "text-yellow-400" : r.rank === 2 ? "text-slate-400" : "text-amber-500"}`}>#{r.rank}</span>
-                      <div>
-                        <p className="font-medium">{r.name}</p>
-                        <p className="text-xs text-muted-foreground">{r.gamesPlayed} משחקים</p>
-                      </div>
-                    </div>
-                    <span className={r.totalProfitLoss >= 0 ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
-                      {r.totalProfitLoss > 0 ? "+" : ""}{formatCurrency(r.totalProfitLoss)}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Top 3 + Bottom 3 stacked */}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base"><Medal className="h-5 w-5 text-yellow-500" />🏆 טופ 3 כל הזמנים</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {top3.length === 0 ? (
+                <p className="text-sm text-muted-foreground">אין נתונים עדיין</p>
+              ) : (
+                <div className="space-y-2">
+                  {top3.map((r, i) => {
+                    const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉";
+                    return (
+                      <Link key={r.userId} href={`/groups/${params.groupId}/players/${r.userId}`} className="flex items-center justify-between p-2.5 rounded-lg border hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-lg">{medal}</span>
+                          <div>
+                            <p className="font-medium text-sm">{r.name}</p>
+                            <p className="text-xs text-muted-foreground">{r.gamesPlayed} משחקים</p>
+                          </div>
+                        </div>
+                        <span className={r.totalProfitLoss >= 0 ? "text-green-500 font-semibold text-sm" : "text-red-500 font-semibold text-sm"}>
+                          {r.totalProfitLoss > 0 ? "+" : ""}{formatCurrency(r.totalProfitLoss)}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {bottom3ForCard.length > 0 && (
+            <Card style={{ borderColor: "rgba(248,113,113,0.2)", background: "rgba(248,113,113,0.03)" }}>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base text-red-400">
+                  <span className="text-lg">💀</span> נלחמים בתחתית
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  {bottom3ForCard.map((r, i) => {
+                    const icon = i === 0 ? "💀" : i === 1 ? "🤡" : "🫠";
+                    return (
+                      <Link
+                        key={r.userId}
+                        href={`/groups/${params.groupId}/players/${r.userId}`}
+                        className="flex items-center justify-between p-2.5 rounded-lg border hover:bg-muted/50 transition-colors"
+                        style={{ borderColor: "rgba(248,113,113,0.15)" }}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-lg">{icon}</span>
+                          <div>
+                            <p className="font-medium text-sm">{r.name}</p>
+                            <p className="text-xs text-muted-foreground">{r.gamesPlayed} משחקים</p>
+                          </div>
+                        </div>
+                        <span className="text-red-400 font-semibold text-sm">
+                          {formatCurrency(r.totalProfitLoss)}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
         {/* Highlights */}
         <div className="space-y-4">
@@ -262,41 +303,6 @@ export default async function GroupPage({ params }: { params: { groupId: string 
           </Card>
         </div>
       </div>
-
-      {/* Bottom 3 — נלחמים בתחתית */}
-      {bottom3ForCard.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="text-lg">📉</span>
-              נלחמים בתחתית
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {bottom3ForCard.map((r) => (
-                <Link
-                  key={r.userId}
-                  href={`/groups/${params.groupId}/players/${r.userId}`}
-                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                  style={{ borderColor: "rgba(248,113,113,0.2)" }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg font-bold text-red-500">#{r.rank}</span>
-                    <div>
-                      <p className="font-medium">{r.name}</p>
-                      <p className="text-xs text-muted-foreground">{r.gamesPlayed} משחקים</p>
-                    </div>
-                  </div>
-                  <span className={r.totalProfitLoss >= 0 ? "text-green-600 font-semibold" : "text-red-500 font-semibold"}>
-                    {r.totalProfitLoss > 0 ? "+" : ""}{formatCurrency(r.totalProfitLoss)}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Top/Bottom roast */}
       {(top2.length > 0 || bottom2Filtered.length > 0) && (
