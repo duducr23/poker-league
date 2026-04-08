@@ -15,7 +15,13 @@ export default async function InvitationsPage({ params }: { params: { groupId: s
       where: { groupId_userId: { groupId: params.groupId, userId: session.user.id } },
     }),
     prisma.eventInvitation.findMany({
-      where: { groupId: params.groupId },
+      where: {
+        groupId: params.groupId,
+        OR: [
+          { sessionId: null },
+          { session: { status: { not: "CLOSED" } } },
+        ],
+      },
       include: {
         createdBy: { select: { id: true, name: true, image: true } },
         responses: {

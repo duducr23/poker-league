@@ -21,7 +21,13 @@ export async function GET(req: Request, { params }: { params: { groupId: string 
   if (!member) return NextResponse.json({ error: "אין גישה" }, { status: 403 });
 
   const invitations = await prisma.eventInvitation.findMany({
-    where: { groupId: params.groupId },
+    where: {
+      groupId: params.groupId,
+      OR: [
+        { sessionId: null },
+        { session: { status: { not: "CLOSED" } } },
+      ],
+    },
     include: {
       createdBy: { select: { id: true, name: true, image: true } },
       responses: {
