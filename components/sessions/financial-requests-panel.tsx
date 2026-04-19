@@ -271,13 +271,13 @@ export function FinancialRequestsPanel({
   function openAdminEdit(s: ParticipantSummary) {
     setEditingUserId(s.userId);
     setAdminEditBuyIn(s.approvedBuyIn > 0 ? String(s.approvedBuyIn) : "");
-    setAdminEditRebuy(s.approvedRebuys > 0 ? String(s.approvedRebuys) : "");
+    setAdminEditRebuy(""); // always empty — represents "add new rebuy", not total
     setAdminEditCashOut(s.finalCashOut > 0 ? String(s.finalCashOut) : "");
   }
 
   async function handleAdminSave(userId: string) {
     const buyIn = parseFloat(adminEditBuyIn) || 0;
-    const rebuyTotal = parseFloat(adminEditRebuy) || 0;
+    const addRebuyAmount = parseFloat(adminEditRebuy) || 0;
     const cashOut = parseFloat(adminEditCashOut) || 0;
 
     setAdminSaving(true);
@@ -286,7 +286,7 @@ export function FinancialRequestsPanel({
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ buyIn, rebuyTotal, cashOut }),
+        body: JSON.stringify({ buyIn, addRebuyAmount, cashOut }),
       }
     );
     const json = await res.json();
@@ -571,7 +571,7 @@ export function FinancialRequestsPanel({
                 {/* Admin edit form */}
                 {isAdmin && isOpen && isEditing ? (
                   <div className="space-y-2 pt-1">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
                         <Label className="text-xs text-slate-400">קנייה (₪)</Label>
                         <Input
@@ -586,18 +586,6 @@ export function FinancialRequestsPanel({
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs text-slate-400">רה-ביי (₪)</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="1"
-                          value={adminEditRebuy}
-                          onChange={(e) => setAdminEditRebuy(e.target.value)}
-                          className="h-7 text-xs px-2"
-                          placeholder="0"
-                        />
-                      </div>
-                      <div className="space-y-1">
                         <Label className="text-xs text-slate-400">יציאה (₪)</Label>
                         <Input
                           type="number"
@@ -609,6 +597,26 @@ export function FinancialRequestsPanel({
                           placeholder="0"
                         />
                       </div>
+                    </div>
+                    {/* Rebuy — add only, never replace */}
+                    <div className="space-y-1 pt-1 border-t border-white/5">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs text-amber-400">+ הוסף ריבאי (₪)</Label>
+                        {s.approvedRebuys > 0 && (
+                          <span className="text-xs text-slate-500">
+                            סה"כ ריבאים עד כה: <span className="text-slate-300">{formatCurrency(s.approvedRebuys)}</span>
+                          </span>
+                        )}
+                      </div>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={adminEditRebuy}
+                        onChange={(e) => setAdminEditRebuy(e.target.value)}
+                        className="h-7 text-xs px-2"
+                        placeholder="0 = לא להוסיף"
+                      />
                     </div>
                     <Button
                       size="sm"

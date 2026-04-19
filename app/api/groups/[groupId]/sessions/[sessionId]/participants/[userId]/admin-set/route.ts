@@ -7,7 +7,7 @@ import { z } from "zod";
 
 const schema = z.object({
   buyIn: z.number().min(0),
-  rebuyTotal: z.number().min(0),
+  addRebuyAmount: z.number().min(0).default(0), // adds a new rebuy on top of existing ones
   cashOut: z.number().min(0),
 });
 
@@ -89,25 +89,25 @@ export async function PATCH(
       }
 
       // ── Rebuys ────────────────────────────────────────────────────────────
-      // Decline all existing pending/approved rebuys
+      // Decline only pending rebuys — keep all approved ones intact
       await tx.sessionFinancialRequest.updateMany({
         where: {
           sessionId: params.sessionId,
           userId: params.userId,
           type: "REBUY",
-          status: { in: ["PENDING", "APPROVED"] },
+          status: "PENDING",
         },
         data: { status: "DECLINED", declinedByUserId: session.user.id, declinedAt: new Date() },
       });
 
-      if (body.rebuyTotal > 0) {
-        // Create one consolidated approved rebuy
+      // Add a new approved rebuy record (never replaces existing ones)
+      if (body.addRebuyAmount > 0) {
         await tx.sessionFinancialRequest.create({
           data: {
             sessionId: params.sessionId,
             userId: params.userId,
             type: "REBUY",
-            amount: body.rebuyTotal,
+            amount: body.addRebuyAmount,
             status: "APPROVED",
             createdByUserId: session.user.id,
             approvedByUserId: session.user.id,

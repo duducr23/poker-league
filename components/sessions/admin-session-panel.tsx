@@ -37,7 +37,7 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
   const [saving, setSaving] = useState(false);
   const [addingLoading, setAddingLoading] = useState(false);
   const [freezingUser, setFreezingUser] = useState<string | null>(null);
-  const [formValues, setFormValues] = useState<Record<string, { buyIn: number; rebuy: number; cashOut: number }>>({});
+  const [formValues, setFormValues] = useState<Record<string, { buyIn: number; addRebuy: number; cashOut: number }>>({});
   const [forceClosing, setForceClosing] = useState(false);
 
   useEffect(() => {
@@ -53,13 +53,13 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
   function startEdit(r: ResultRow) {
     setFormValues((prev) => ({
       ...prev,
-      [r.userId]: { buyIn: r.buyIn, rebuy: r.rebuy, cashOut: r.cashOut },
+      [r.userId]: { buyIn: r.buyIn, addRebuy: 0, cashOut: r.cashOut },
     }));
     setEditingUser(r.userId);
   }
 
   function getForm(userId: string) {
-    return formValues[userId] || { buyIn: 0, rebuy: 0, cashOut: 0 };
+    return formValues[userId] || { buyIn: 0, addRebuy: 0, cashOut: 0 };
   }
 
   function updateForm(userId: string, field: string, value: number) {
@@ -71,11 +71,12 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
 
   async function saveResult(userId: string) {
     const f = getForm(userId);
+    const currentRebuy = results.find(r => r.userId === userId)?.rebuy ?? 0;
     setSaving(true);
     const res = await fetch(`/api/groups/${groupId}/sessions/${sessionId}/results`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, ...f }),
+      body: JSON.stringify({ userId, buyIn: f.buyIn, rebuy: currentRebuy + f.addRebuy, cashOut: f.cashOut }),
     });
     setSaving(false);
     if (!res.ok) { toast({ title: "שגיאה", variant: "destructive" }); return; }
@@ -207,7 +208,7 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
             {results.map((r) => {
               const isEditing = editingUser === r.userId;
               const f = getForm(r.userId);
-              const totalInv = (f.buyIn || 0) + (f.rebuy || 0);
+              const totalInv = (f.buyIn || 0) + (r.rebuy || 0) + (f.addRebuy || 0);
               const pl = (f.cashOut || 0) - totalInv;
               const member = memberMap[r.userId];
               const isFrozen = member?.isFrozen ?? false;
@@ -282,10 +283,9 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
                   {/* Inline edit form */}
                   {isEditing ? (
                     <div className="space-y-3 pt-1">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         {[
                           { key: "buyIn", label: "קנייה ₪" },
-                          { key: "rebuy", label: "ריבאי ₪" },
                           { key: "cashOut", label: "יציאה ₪" },
                         ].map(({ key, label }) => (
                           <div key={key} className="space-y-1">
@@ -300,6 +300,21 @@ export function AdminSessionPanel({ groupId, sessionId, results, isOpen, onRefre
                             />
                           </div>
                         ))}
+                        <div className="space-y-1">
+                          <Label className="text-xs text-amber-400">
+                            + ריבאי ₪
+                            {r.rebuy > 0 && <span className="text-slate-500 font-normal mr-1">(כבר: {formatCurrency(r.rebuy)})</span>}
+                          </Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={f.addRebuy || 0}
+                            onChange={(e) => updateForm(r.userId, "addRebuy", Number(e.target.value))}
+                            className="h-8 text-sm"
+                            placeholder="0"
+                          />
+                        </div>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-slate-500">

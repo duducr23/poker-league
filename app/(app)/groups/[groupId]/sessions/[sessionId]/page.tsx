@@ -85,7 +85,7 @@ export default function SessionDetailPage() {
       return;
     }
     toast({ title: "✅ הערב נסגר!" });
-    load();
+    window.location.href = `/groups/${params.groupId}/sessions/${params.sessionId}/summary`;
   }
 
   async function handleReopen() {
