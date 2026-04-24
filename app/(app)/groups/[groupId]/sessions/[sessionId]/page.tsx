@@ -286,6 +286,7 @@ export default function SessionDetailPage() {
                     userId: r.userId,
                     name: r.userName,
                   }))}
+                  onRefresh={load}
                 />
               </CardContent>
             </Card>

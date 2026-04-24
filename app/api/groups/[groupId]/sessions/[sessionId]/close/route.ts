@@ -6,7 +6,7 @@ import { requireGroupAdmin } from "@/lib/permissions";
 import { getSessionValidation } from "@/lib/validations";
 import { computeAndSaveSettlements } from "@/lib/settlements";
 import { computeAndSaveAchievements } from "@/lib/achievements";
-import { validateSessionBeforeClose } from "@/lib/financial-requests";
+import { validateSessionBeforeClose, syncParticipantResult } from "@/lib/financial-requests";
 import { sendWebPushToUsers } from "@/lib/push";
 import { buildPayload } from "@/lib/push-payloads";
 
@@ -22,6 +22,15 @@ export async function POST(
     const gameSession = await prisma.session.findUnique({ where: { id: params.sessionId } });
     if (!gameSession || gameSession.groupId !== params.groupId)
       return NextResponse.json({ error: "סשן לא נמצא" }, { status: 404 });
+
+    // Sync all participants from financial requests before validating
+    const allParticipants = await prisma.sessionParticipantResult.findMany({
+      where: { sessionId: params.sessionId },
+      select: { userId: true },
+    });
+    await Promise.all(
+      allParticipants.map((p) => syncParticipantResult(params.sessionId, p.userId))
+    );
 
     const validation = await getSessionValidation(params.sessionId);
     if (!validation.isValid) {

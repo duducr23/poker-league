@@ -1,5 +1,53 @@
 import { prisma } from "./db";
 
+/**
+ * Reads all approved financial requests for a participant and syncs
+ * SessionParticipantResult (buyIn, rebuy, totalInvested, profitLoss, isSubmitted).
+ * Call this after any approval, decline, or cash-out change.
+ */
+export async function syncParticipantResult(
+  sessionId: string,
+  userId: string,
+): Promise<void> {
+  // Only sync if the player has ANY financial request records.
+  // Players who submitted via the old direct form have no requests — leave them untouched.
+  const anyRequest = await prisma.sessionFinancialRequest.findFirst({
+    where: { sessionId, userId },
+  });
+  if (!anyRequest) return;
+
+  const [approvedBuyInReq, approvedRebuyReqs, participant] = await Promise.all([
+    prisma.sessionFinancialRequest.findFirst({
+      where: { sessionId, userId, type: "INITIAL_BUYIN", status: "APPROVED" },
+    }),
+    prisma.sessionFinancialRequest.findMany({
+      where: { sessionId, userId, type: "REBUY", status: "APPROVED" },
+    }),
+    prisma.sessionParticipantResult.findUnique({
+      where: { sessionId_userId: { sessionId, userId } },
+    }),
+  ]);
+
+  if (!participant) return;
+
+  const syncedBuyIn   = approvedBuyInReq?.amount ?? 0;
+  const syncedRebuy   = approvedRebuyReqs.reduce((s: number, r: { amount: number }) => s + r.amount, 0);
+  const totalInvested = syncedBuyIn + syncedRebuy;
+  const profitLoss    = (participant.finalCashOut ?? 0) - totalInvested;
+
+  await prisma.sessionParticipantResult.update({
+    where: { sessionId_userId: { sessionId, userId } },
+    data: {
+      buyIn: syncedBuyIn,
+      rebuy: syncedRebuy,
+      totalInvested,
+      profitLoss,
+      cashOut: participant.finalCashOut ?? 0,
+      isSubmitted: syncedBuyIn > 0,
+    },
+  });
+}
+
 export async function getApprovedRequests(sessionId: string, userId: string) {
   return prisma.sessionFinancialRequest.findMany({
     where: { sessionId, userId, status: "APPROVED" },

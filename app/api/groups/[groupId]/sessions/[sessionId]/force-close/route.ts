@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { requireGroupAdmin } from "@/lib/permissions";
 import { computeAndSaveSettlements } from "@/lib/settlements";
 import { computeAndSaveAchievements } from "@/lib/achievements";
+import { syncParticipantResult } from "@/lib/financial-requests";
 
 export async function POST(
   _req: Request,
@@ -22,6 +23,15 @@ export async function POST(
 
     if (gameSession.status !== "OPEN")
       return NextResponse.json({ error: "הסשן כבר סגור" }, { status: 400 });
+
+    // Step 0: Sync all participants from financial requests (so profitLoss is accurate)
+    const allParticipantIds = await prisma.sessionParticipantResult.findMany({
+      where: { sessionId: params.sessionId },
+      select: { userId: true },
+    });
+    await Promise.all(
+      allParticipantIds.map((p) => syncParticipantResult(params.sessionId, p.userId))
+    );
 
     // Step 1: Find all unsubmitted participants
     const unsubmitted = await prisma.sessionParticipantResult.findMany({

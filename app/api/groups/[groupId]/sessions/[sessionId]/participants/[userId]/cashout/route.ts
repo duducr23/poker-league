@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { requireGroupMember, isGroupAdmin } from "@/lib/permissions";
+import { syncParticipantResult } from "@/lib/financial-requests";
 import { z } from "zod";
 
 const patchSchema = z.object({
@@ -43,12 +44,15 @@ export async function PATCH(
       return NextResponse.json({ error: "המשתתף לא נמצא בסשן" }, { status: 404 });
     }
 
-    const updated = await prisma.sessionParticipantResult.update({
+    await prisma.sessionParticipantResult.update({
       where: { sessionId_userId: { sessionId: params.sessionId, userId: params.userId } },
       data: { finalCashOut: body.finalCashOut },
     });
 
-    return NextResponse.json(updated);
+    // Sync buyIn / rebuy / totalInvested / profitLoss / isSubmitted
+    await syncParticipantResult(params.sessionId, params.userId);
+
+    return NextResponse.json({ ok: true });
   } catch (e: unknown) {
     if (e instanceof z.ZodError) {
       return NextResponse.json({ error: e.errors[0]?.message ?? "שגיאת ולידציה" }, { status: 400 });

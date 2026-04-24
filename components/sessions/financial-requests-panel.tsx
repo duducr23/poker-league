@@ -53,6 +53,7 @@ interface Props {
   isOpen: boolean;
   isAdmin?: boolean;
   participants: Array<{ userId: string; name: string; image?: string | null }>;
+  onRefresh?: () => void;
 }
 
 function statusBadge(status: string) {
@@ -113,6 +114,7 @@ export function FinancialRequestsPanel({
   isOpen,
   isAdmin = false,
   participants,
+  onRefresh,
 }: Props) {
   const [requests, setRequests] = useState<FinancialRequest[]>([]);
   const [cashOutMap, setCashOutMap] = useState<Record<string, number>>({});
@@ -299,6 +301,7 @@ export function FinancialRequestsPanel({
     setEditingUserId(null);
     fetchRequests();
     fetchCashOuts();
+    onRefresh?.();
   }
 
   const summaries = computeSummaries(participants, requests, cashOutMap);

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { requireGroupMember } from "@/lib/permissions";
+import { syncParticipantResult } from "@/lib/financial-requests";
 
 export async function POST(
   _req: Request,
@@ -76,6 +77,9 @@ export async function POST(
         declinedBy: { select: { id: true, name: true } },
       },
     });
+
+    // Sync SessionParticipantResult so close-session validation passes
+    await syncParticipantResult(params.sessionId, financialRequest.userId);
 
     return NextResponse.json(updated);
   } catch (e: unknown) {

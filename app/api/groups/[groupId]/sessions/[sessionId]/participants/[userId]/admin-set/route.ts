@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { requireGroupAdmin } from "@/lib/permissions";
+import { syncParticipantResult } from "@/lib/financial-requests";
 import { z } from "zod";
 
 const schema = z.object({
@@ -121,7 +122,11 @@ export async function PATCH(
         where: { sessionId_userId: { sessionId: params.sessionId, userId: params.userId } },
         data: { finalCashOut: body.cashOut },
       });
+
     });
+
+    // Sync SessionParticipantResult outside transaction (reads back final state)
+    await syncParticipantResult(params.sessionId, params.userId);
 
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
