@@ -28,6 +28,7 @@ export interface PlayerRoastCard {
   profitLoss: number;
   lines: string[];
   badge: string;
+  trashTalk: string; // short sharp line based on rank/result
 }
 
 export interface RoastResult {
@@ -179,6 +180,101 @@ function genericLines(p: RoastPlayerInput): string[] {
   return [`${p.name} תרם לאווירה הכלכלית הטובה של הערב.`];
 }
 
+// ── Trash talk by rank ────────────────────────────────────────────────────────
+
+function generateTrashTalk(
+  p: RoastPlayerInput,
+  rank: number,        // 1-based, sorted by profitLoss desc
+  total: number,       // total players
+  rebuyKingId: string | null,
+  fastestRebuyId: string | null,
+): string {
+  const amt = Math.abs(p.profitLoss);
+  const amtStr = amt.toFixed(0);
+  const n = p.name;
+
+  // ── 1st place ──
+  if (rank === 1 && p.profitLoss > 0) {
+    const lines = [
+      `${n} ניצח ועכשיו הוא בטוח שהוא הכי טוב בשולחן. ספוילר: הוא לא. הוא פשוט הכי בר-מזל.`,
+      `${n} עשה +${amtStr}₪. תשמרו את המספרים האלה — בפעם הבאה הוא יחזיר את הכל ועוד קצת.`,
+      `כולם אוהבים את ${n} כשהוא מנצח. הוא פחות אוהב את עצמו כשהוא מפסיד. שנראה מה יהיה בפעם הבאה.`,
+      `${n} לוקח הביתה +${amtStr}₪ ומחייך. הארנק שמח. האגו — פחות בריא.`,
+      `${n} השאיר את כולם מאחור. עד לערב הבא.`,
+    ];
+    return lines[Math.floor(Math.random() * lines.length)];
+  }
+
+  // ── 2nd place ──
+  if (rank === 2 && p.profitLoss > 0) {
+    const lines = [
+      `${n} כמעט. כמעט זה מילה שנשמעת הרבה בפוקר, ובחיים.`,
+      `מקום שני — הכסף טוב, אבל אף אחד לא זוכר את מקום שני.`,
+      `${n} בא לנצח, יצא שני. יש גם מצבים גרועים יותר.`,
+    ];
+    return lines[Math.floor(Math.random() * lines.length)];
+  }
+
+  // ── 3rd place ──
+  if (rank === 3 && p.profitLoss > 0) {
+    const lines = [
+      `${n} בא עם חיוך, יוצא עם חיוך קטן יותר. אבל עדיין עם כסף.`,
+      `מקום שלישי. לא מנצח, לא מפסיד. בדיוק כמו כל ההחלטות שלו בחיים.`,
+      `${n} — ניצחון צנוע של אדם צנוע. חבל שאף אחד לא יזכור.`,
+    ];
+    return lines[Math.floor(Math.random() * lines.length)];
+  }
+
+  // ── Break even ──
+  if (p.profitLoss === 0) {
+    const lines = [
+      `${n} לא הפסיד ולא ניצח. בילה ערב שלם ב-0. אפשר היה לראות נטפליקס.`,
+      `${n} — הישג מרשים של בינוניות מוחלטת.`,
+      `כל הכבוד ל${n} שהצליח לבזבז ערב שלם ולצאת בדיוק כמו שנכנס.`,
+    ];
+    return lines[Math.floor(Math.random() * lines.length)];
+  }
+
+  // ── Last place ──
+  if (rank === total && p.profitLoss < 0) {
+    const lines = [
+      `${n} תרם -${amtStr}₪ לרווחת הקבוצה. ממש ממש נדיב. כמעט מביך.`,
+      `מקום אחרון. ${n} ידע מהרגע הראשון שהערב הזה לא שלו. הקלפים ידעו עוד לפניו.`,
+      `${n} הפסיד הכי הרבה הלילה. אבל הוא בא בשביל החברה, לא? לא? אה.`,
+      `${n} — MVP של ההפסדים. הגביע לא מגיע בדואר.`,
+      `-${amtStr}₪. ${n} לא ישן הלילה. הקלפים ישנו מעולה.`,
+    ];
+    return lines[Math.floor(Math.random() * lines.length)];
+  }
+
+  // ── 2nd to last ──
+  if (rank === total - 1 && p.profitLoss < 0) {
+    const lines = [
+      `${n} הצליח לא להיות אחרון. זה ההישג של הערב.`,
+      `לפני האחרון. ${n} מנחם את עצמו שלפחות יש מישהו אחריו.`,
+      `-${amtStr}₪ — ${n} מפסיד בכבוד. שזה... מפסיד.`,
+    ];
+    return lines[Math.floor(Math.random() * lines.length)];
+  }
+
+  // ── Middle losers ──
+  if (p.profitLoss < 0) {
+    const rebuyNote = p.rebuyCount > 0
+      ? ` ${p.rebuyCount} ריבאי ועדיין הפסיד.`
+      : "";
+    const lines = [
+      `${n} הפסיד -${amtStr}₪.${rebuyNote} היה אופטימי. זה נחמד.`,
+      `${n} ניסה. הקלפים לא שיתפו פעולה. זה לא אישי — זה תמיד אישי.`,
+      `-${amtStr}₪ ו${n} כבר מתכנן את הנקמה לערב הבא.`,
+      `${n} תרם לאווירה ולקופה. בעיקר לקופה.`,
+    ];
+    return lines[Math.floor(Math.random() * lines.length)];
+  }
+
+  // ── Fallback ──
+  return `${n} — היה שם, שיחק, יצא. מה לומר.`;
+}
+
 // ── Main export ─────────────────────────────────────────────────────────────
 
 export function computeRoast(players: RoastPlayerInput[]): RoastResult {
@@ -276,7 +372,10 @@ export function computeRoast(players: RoastPlayerInput[]): RoastResult {
   }
 
   // ── Per-player roast cards ────────────────────────────────────────────────
+  const sortedByRank = [...players].sort((a, b) => b.profitLoss - a.profitLoss);
+
   const playerCards: PlayerRoastCard[] = players.map((p) => {
+    const rank = sortedByRank.findIndex((s) => s.userId === p.userId) + 1;
     const lines: string[] = [];
 
     if (rebuyKing && p.userId === rebuyKing.userId) lines.push(...rebuyKingLines(p));
@@ -302,7 +401,15 @@ export function computeRoast(players: RoastPlayerInput[]): RoastResult {
     else if (fastest && p.userId === fastest.player.userId) badge = "⚡ ברק הריבאי";
     else if (rock && p.userId === rock.userId) badge = "🧊 הסלע";
 
-    return { userId: p.userId, name: p.name, profitLoss: p.profitLoss, lines: finalLines, badge };
+    const trashTalk = generateTrashTalk(
+      p,
+      rank,
+      players.length,
+      rebuyKing?.userId ?? null,
+      fastest?.player.userId ?? null,
+    );
+
+    return { userId: p.userId, name: p.name, profitLoss: p.profitLoss, lines: finalLines, badge, trashTalk };
   });
 
   return { awards, playerCards };

@@ -106,18 +106,38 @@ export function SessionRoast({ roast }: Props) {
                   </span>
                 </div>
 
+                {/* Trash talk — sharp one-liner */}
+                {card.trashTalk && (
+                  <div
+                    className="rounded-lg px-3 py-2 mb-2 text-xs leading-relaxed font-medium"
+                    style={{
+                      background: card.profitLoss > 0
+                        ? "rgba(16,185,129,0.08)"
+                        : card.profitLoss < 0
+                        ? "rgba(248,113,113,0.08)"
+                        : "rgba(255,255,255,0.04)",
+                      borderRight: `3px solid ${card.profitLoss > 0 ? "#10b981" : card.profitLoss < 0 ? "#f87171" : "#475569"}`,
+                      color: card.profitLoss > 0 ? "#6ee7b7" : card.profitLoss < 0 ? "#fca5a5" : "#94a3b8",
+                    }}
+                  >
+                    💬 {card.trashTalk}
+                  </div>
+                )}
+
                 {/* Roast lines */}
-                <ul className="space-y-1.5">
-                  {card.lines.map((line, i) => (
-                    <li
-                      key={i}
-                      className="text-xs leading-relaxed text-slate-400 flex gap-2"
-                    >
-                      <span className="text-slate-600 shrink-0">—</span>
-                      <span>{line}</span>
-                    </li>
-                  ))}
-                </ul>
+                {card.lines.length > 0 && (
+                  <ul className="space-y-1.5">
+                    {card.lines.map((line, i) => (
+                      <li
+                        key={i}
+                        className="text-xs leading-relaxed text-slate-400 flex gap-2"
+                      >
+                        <span className="text-slate-600 shrink-0">—</span>
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ))}
           </div>
