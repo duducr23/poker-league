@@ -48,7 +48,30 @@
       "Bash(dir \"C:\\\\Users\\\\user\\\\Desktop\\\\employee-tracker\\\\apps\\\\web\\\\app\\\\api\\\\quotes\\\\[id]\" /b)",
       "mcp__Claude_in_Chrome__tabs_context_mcp",
       "Bash(dir \"C:\\\\Users\\\\user\\\\Desktop\\\\employee-tracker\\\\apps\\\\web\\\\app\\\\\\(dashboard\\)\" /b)",
-      "Bash(echo \"Exit code: $?\")"
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(ls \"C:\\\\Users\\\\user\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\52b0ca56-e184-4618-93ec-7dc1f2674383\\\\ecc7d00d-56ed-4a90-bf9b-2bc861953d90\\\\skills\\\\pptx\\\\scripts\\\\office\")",
+      "Bash(python \"C:\\\\Users\\\\user\\\\AppData\\\\Roaming\\\\Claude\\\\local-agent-mode-sessions\\\\skills-plugin\\\\52b0ca56-e184-4618-93ec-7dc1f2674383\\\\ecc7d00d-56ed-4a90-bf9b-2bc861953d90\\\\skills\\\\pptx\\\\scripts\\\\office\\\\soffice.py\" --headless --convert-to pdf \"שיעור_1_מבוא_לקריפטו.pptx\")",
+      "Bash(where python *)",
+      "Bash(python \"C:/Users/user/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/52b0ca56-e184-4618-93ec-7dc1f2674383/ecc7d00d-56ed-4a90-bf9b-2bc861953d90/skills/pptx/scripts/office/soffice.py\" --headless --convert-to pdf \"שיעור_1_מבוא_לקריפטו.pptx\")",
+      "Bash(where soffice *)",
+      "Bash(where libreoffice *)",
+      "Read(//c/Program Files/**)",
+      "Bash(python -m markitdown \"C:/Users/user/Desktop/אליקציה פוקר/poker-league/.claude/worktrees/wonderful-einstein-89a644/שיעור_1_מבוא_לקריפטו.pptx\")",
+      "Bash(pip install *)",
+      "Bash(cp \"C:/Users/user/Desktop/אליקציה פוקר/poker-league/.claude/worktrees/wonderful-einstein-89a644/שיעור_1_מבוא_לקריפטו.pptx\" \"C:/Users/user/Desktop/שיעור_1_מבוא_לקריפטו.pptx\")",
+      "WebFetch(domain:daytradersclub.teachable.com)",
+      "Bash(node create_lesson2.js)",
+      "Bash(node create_course_chapters2to12.js)",
+      "Bash(copy \"C:\\\\Users\\\\user\\\\Desktop\\\\קריפטו\\\\קורס_פילקונה_פרקים_2_עד_12.pptx\" \"C:\\\\Users\\\\user\\\\Desktop\\\\קורס_פילקונה_פרקים_2_עד_12.pptx\")",
+      "Bash(node create_trade_docs.js)",
+      "Bash(node create_trade_docs_DR.js)",
+      "Bash(npm list *)",
+      "Bash(node create_trade_journal_excel.js)",
+      "Bash(node create_elliott_wave_pptx.js)",
+      "Bash(node create_syllabus_pptx.js)",
+      "Bash(node -e ' *)",
+      "Bash(node create_level_test_pptx.js)",
+      "Bash(node create_level_test2_pptx.js)"
     ]
   }
 }
